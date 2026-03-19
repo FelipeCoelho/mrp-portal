@@ -1,0 +1,26 @@
+# IDEs
+.idea/
+.vscode/
+.kiro/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Ambiente
+.env
+.env.local
+
+# Arquivos temporários
+tmp/
+temp/
