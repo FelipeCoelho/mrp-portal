@@ -1,0 +1,205 @@
+<div class="container">
+  <h1>Cadastro de Contratos</h1>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" (click)="novo()">+ Novo Contrato</button>
+  </div>
+
+  @if (mostrarForm()) {
+    <div class="form-card">
+      <h2>{{ editandoId() !== null ? 'Editar' : 'Novo' }} Contrato</h2>
+
+      @if (erros().length > 0) {
+        <div class="erros" role="alert">
+          @for (erro of erros(); track erro) {
+            <p>{{ erro }}</p>
+          }
+        </div>
+      }
+
+      <form (ngSubmit)="salvar()">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="inicioVigencia">Início da Vigência</label>
+            <input id="inicioVigencia" type="date"
+              [ngModel]="form().inicioVigencia"
+              (ngModelChange)="updateForm('inicioVigencia', $event)"
+              name="inicioVigencia" required />
+          </div>
+          <div class="form-group">
+            <label for="fimVigencia">Fim da Vigência</label>
+            <input id="fimVigencia" type="date"
+              [ngModel]="form().fimVigencia"
+              (ngModelChange)="updateForm('fimVigencia', $event)"
+              name="fimVigencia" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="codigoClienteSap">Código do Cliente SAP/TOVS</label>
+            <select id="codigoClienteSap"
+              [ngModel]="form().codigoClienteSap"
+              (ngModelChange)="updateForm('codigoClienteSap', $event)"
+              name="codigoClienteSap" required>
+              <option value="" disabled>Selecione um cliente...</option>
+              @for (c of clientesValidos; track c.codigo) {
+                <option [value]="c.codigo">{{ c.codigo }} - {{ c.nome }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="codigoMaterialSap">Código do Material SAP/KRAFT</label>
+            <select id="codigoMaterialSap"
+              [ngModel]="form().codigoMaterialSap"
+              (ngModelChange)="updateForm('codigoMaterialSap', $event)"
+              name="codigoMaterialSap" required>
+              <option value="" disabled>Selecione um material...</option>
+              @for (m of materiaisValidos; track m.codigo) {
+                <option [value]="m.codigo">{{ m.codigo }} - {{ m.nome }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-secondary" (click)="cancelar()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Tabela de contratos -->
+  <div class="table-wrapper">
+    <table class="table" aria-label="Lista de contratos">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Início Vigência</th>
+          <th scope="col">Fim Vigência</th>
+          <th scope="col">Cliente SAP</th>
+          <th scope="col">Material SAP</th>
+          <th scope="col">Consumos</th>
+          <th scope="col">Criado em</th>
+          <th scope="col">Alterado em</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (contrato of contratos(); track contrato.id) {
+          <tr>
+            <td>{{ contrato.id }}</td>
+            <td>{{ contrato.inicioVigencia }}</td>
+            <td>{{ contrato.fimVigencia }}</td>
+            <td>{{ getNomeCliente(contrato.codigoClienteSap) }}</td>
+            <td>{{ getNomeMaterial(contrato.codigoMaterialSap) }}</td>
+            <td>{{ contrato.consumosMensais.length }}</td>
+            <td>{{ contrato.rastreabilidade.dataCriacao }} {{ contrato.rastreabilidade.horarioCriacao }}</td>
+            <td>
+              @if (contrato.rastreabilidade.dataAlteracao) {
+                {{ contrato.rastreabilidade.dataAlteracao }} {{ contrato.rastreabilidade.horarioAlteracao }}
+              } @else {
+                —
+              }
+            </td>
+            <td class="actions">
+              <button class="btn btn-sm btn-info" (click)="abrirConsumos(contrato.id)">Consumos</button>
+              <button class="btn btn-sm btn-edit" (click)="editar(contrato)">Editar</button>
+              <button class="btn btn-sm btn-delete" (click)="remover(contrato.id)">Remover</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="9" class="empty">Nenhum contrato cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Sub-tela: Consumos Mensais -->
+  @if (mostrarConsumos()) {
+    <div class="modal-overlay" (click)="fecharConsumos()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2>Consumos Mensais — Contrato #{{ contratoSelecionadoId() }}</h2>
+
+        <form class="consumo-form" (ngSubmit)="adicionarConsumo()">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="consumoAno">Ano</label>
+              <input id="consumoAno" type="number" min="2020" max="2040"
+                [ngModel]="consumoForm().ano"
+                (ngModelChange)="updateConsumoForm('ano', $event)"
+                name="consumoAno" required placeholder="Ex: 2026" />
+            </div>
+            <div class="form-group">
+              <label for="consumoMes">Mês</label>
+              <select id="consumoMes"
+                [ngModel]="consumoForm().mes"
+                (ngModelChange)="updateConsumoForm('mes', $event)"
+                name="consumoMes" required>
+                <option [ngValue]="null" disabled>Selecione...</option>
+                @for (m of meses; track m.valor) {
+                  <option [ngValue]="m.valor">{{ m.nome }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="consumoQtd">Quantidade a Consumir</label>
+              <input id="consumoQtd" type="number" min="0" step="0.01"
+                [ngModel]="consumoForm().quantidade"
+                (ngModelChange)="updateConsumoForm('quantidade', $event)"
+                name="consumoQtd" required />
+            </div>
+            <div class="form-group form-group-btn">
+              <button type="submit" class="btn btn-primary">Adicionar</button>
+            </div>
+          </div>
+        </form>
+
+        @if (contratoSelecionado(); as contrato) {
+          <table class="table" aria-label="Consumos mensais do contrato">
+            <thead>
+              <tr>
+                <th scope="col">Ano</th>
+                <th scope="col">Mês</th>
+                <th scope="col">Quantidade</th>
+                <th scope="col">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (consumo of contrato.consumosMensais; track consumo.id) {
+                <tr>
+                  <td>{{ consumo.ano }}</td>
+                  <td>{{ getNomeMes(consumo.mes) }}</td>
+                  <td>{{ consumo.quantidade }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-delete" (click)="removerConsumo(consumo.id)">Remover</button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="empty">Nenhum consumo cadastrado.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <!-- Rastreabilidade -->
+          <div class="rastreabilidade">
+            <h3>Rastreabilidade</h3>
+            <p>Criado em: {{ contrato.rastreabilidade.dataCriacao }} às {{ contrato.rastreabilidade.horarioCriacao }} por {{ contrato.rastreabilidade.usuarioCriacao }}</p>
+            @if (contrato.rastreabilidade.dataAlteracao) {
+              <p>Alterado em: {{ contrato.rastreabilidade.dataAlteracao }} às {{ contrato.rastreabilidade.horarioAlteracao }} por {{ contrato.rastreabilidade.usuarioAlteracao }}</p>
+            }
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="fecharConsumos()">Fechar</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

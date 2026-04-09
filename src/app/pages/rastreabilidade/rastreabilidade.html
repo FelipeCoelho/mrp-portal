@@ -1,0 +1,76 @@
+<div class="container">
+  <h1>Rastreabilidade</h1>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" (click)="novo()">+ Novo Registro</button>
+  </div>
+
+  @if (mostrarForm()) {
+    <div class="form-card">
+      <h2>{{ editandoId() !== null ? 'Editar' : 'Novo' }} Registro</h2>
+
+      @if (erros().length > 0) {
+        <div class="erros" role="alert">
+          @for (erro of erros(); track erro) {
+            <p>{{ erro }}</p>
+          }
+        </div>
+      }
+
+      <form (ngSubmit)="salvar()">
+        <div class="form-group">
+          <label for="descricao">Descrição</label>
+          <input id="descricao" type="text"
+            [ngModel]="form().descricao"
+            (ngModelChange)="updateForm('descricao', $event)"
+            name="descricao" required placeholder="Descrição do registro" />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-secondary" (click)="cancelar()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="table-wrapper">
+    <table class="table" aria-label="Lista de rastreabilidade">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Descrição</th>
+          <th scope="col">Data Criação</th>
+          <th scope="col">Horário Criação</th>
+          <th scope="col">Usuário Criação</th>
+          <th scope="col">Data Alteração</th>
+          <th scope="col">Horário Alteração</th>
+          <th scope="col">Usuário Alteração</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (reg of registros(); track reg.id) {
+          <tr>
+            <td>{{ reg.id }}</td>
+            <td>{{ reg.descricao }}</td>
+            <td>{{ reg.dataCriacao }}</td>
+            <td>{{ reg.horarioCriacao }}</td>
+            <td>{{ reg.usuarioCriacao }}</td>
+            <td>{{ reg.dataAlteracao ?? '—' }}</td>
+            <td>{{ reg.horarioAlteracao ?? '—' }}</td>
+            <td>{{ reg.usuarioAlteracao ?? '—' }}</td>
+            <td class="actions">
+              <button class="btn btn-sm btn-edit" (click)="editar(reg)">Editar</button>
+              <button class="btn btn-sm btn-delete" (click)="remover(reg.id)">Remover</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="9" class="empty">Nenhum registro cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

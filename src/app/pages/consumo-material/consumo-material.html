@@ -1,0 +1,127 @@
+<div class="container">
+  <h1>Consumo dos Materiais</h1>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" (click)="novo()">+ Novo Material</button>
+  </div>
+
+  @if (mostrarForm()) {
+    <div class="form-card">
+      <h2>{{ editandoId() !== null ? 'Editar' : 'Novo' }} Material</h2>
+      <form (ngSubmit)="salvar()">
+        <div class="form-row">
+          <div class="form-group full">
+            <label for="descricao">Descrição</label>
+            <input id="descricao" type="text" [ngModel]="form().descricao"
+              (ngModelChange)="updateForm('descricao', $event)" name="descricao" required
+              placeholder="Descrição do material" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="precoFabrica">Preço Fábrica</label>
+            <input id="precoFabrica" type="number" step="0.01" [ngModel]="form().precoFabrica"
+              (ngModelChange)="updateForm('precoFabrica', $event)" name="precoFabrica" required />
+          </div>
+          <div class="form-group">
+            <label for="repasse">Repasse (%)</label>
+            <input id="repasse" type="number" step="0.01" [ngModel]="form().repasse"
+              (ngModelChange)="updateForm('repasse', $event)" name="repasse" />
+          </div>
+          <div class="form-group">
+            <label for="precoLiquido">Preço Líquido</label>
+            <input id="precoLiquido" type="number" step="0.01" [ngModel]="form().precoLiquido"
+              (ngModelChange)="updateForm('precoLiquido', $event)" name="precoLiquido" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="demandaMesAtual">Demanda Mês Atual</label>
+            <input id="demandaMesAtual" type="number" step="0.01" [ngModel]="form().demandaMesAtual"
+              (ngModelChange)="updateForm('demandaMesAtual', $event)" name="demandaMesAtual" />
+          </div>
+          <div class="form-group">
+            <label for="forecast">Forecast</label>
+            <input id="forecast" type="number" step="0.01" [ngModel]="form().forecast"
+              (ngModelChange)="updateForm('forecast', $event)" name="forecast" />
+          </div>
+          <div class="form-group">
+            <label for="proposta">Proposta</label>
+            <input id="proposta" type="number" step="0.01" [ngModel]="form().proposta"
+              (ngModelChange)="updateForm('proposta', $event)" name="proposta" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="demandaConsignado3Meses">Demanda Consignado (3 meses)</label>
+            <input id="demandaConsignado3Meses" type="number" step="0.01"
+              [ngModel]="form().demandaConsignado3Meses"
+              (ngModelChange)="updateForm('demandaConsignado3Meses', $event)" name="demandaConsignado3Meses" />
+          </div>
+          <div class="form-group">
+            <label for="demandaConsignado2Meses">Demanda Consignado (2 meses)</label>
+            <input id="demandaConsignado2Meses" type="number" step="0.01"
+              [ngModel]="form().demandaConsignado2Meses"
+              (ngModelChange)="updateForm('demandaConsignado2Meses', $event)" name="demandaConsignado2Meses" />
+          </div>
+          <div class="form-group">
+            <label for="demandaConsignadoUltimoMes">Demanda Consignado (último mês)</label>
+            <input id="demandaConsignadoUltimoMes" type="number" step="0.01"
+              [ngModel]="form().demandaConsignadoUltimoMes"
+              (ngModelChange)="updateForm('demandaConsignadoUltimoMes', $event)" name="demandaConsignadoUltimoMes" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-secondary" (click)="cancelar()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="table-wrapper">
+    <table class="table" aria-label="Lista de consumo dos materiais">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Descrição</th>
+          <th scope="col">Preço Fáb. s/ Repasse</th>
+          <th scope="col">Consumo Médio Diário</th>
+          <th scope="col">Venda Média Consig.</th>
+          <th scope="col">Qtde Falta Vender</th>
+          <th scope="col">Venda Real Projetada</th>
+          <th scope="col">Var. Forecast/Venda</th>
+          <th scope="col">Valor Total Líquido</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of itens(); track item.id) {
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.descricao }}</td>
+            <td>{{ item.precoFabricaSemRepasse | number:'1.2-2' }}</td>
+            <td>{{ item.consumoMedioDiario | number:'1.2-2' }}</td>
+            <td>{{ item.vendaMediaEstoqueConsignacao | number:'1.2-2' }}</td>
+            <td>{{ item.qtdeFaltaVender | number:'1.2-2' }}</td>
+            <td>{{ item.vendaRealProjetada | number:'1.2-2' }}</td>
+            <td>{{ item.variacaoForecastVendaReal | number:'1.2-2' }}%</td>
+            <td>{{ item.valorTotalLiquido | number:'1.2-2' }}</td>
+            <td class="actions">
+              <button class="btn btn-sm btn-edit" (click)="editar(item)">Editar</button>
+              <button class="btn btn-sm btn-delete" (click)="remover(item.id)">Remover</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="10" class="empty">Nenhum material cadastrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

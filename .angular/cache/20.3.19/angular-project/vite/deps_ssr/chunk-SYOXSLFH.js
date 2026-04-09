@@ -4,14 +4,16 @@ import {
   ROUTES,
   Router,
   loadChildren
-} from "./chunk-6VO2OXE4.js";
+} from "./chunk-AJQ7QFMP.js";
 import {
-  APP_BASE_HREF,
   BrowserDomAdapter,
   BrowserModule,
   EVENT_MANAGER_PLUGINS,
   EventManagerPlugin,
-  HTTP_ROOT_INTERCEPTOR_FNS,
+  HTTP_ROOT_INTERCEPTOR_FNS
+} from "./chunk-CB6OW76P.js";
+import {
+  APP_BASE_HREF,
   NullViewportScroller,
   PLATFORM_SERVER_ID,
   PlatformLocation,
@@ -19,7 +21,7 @@ import {
   XhrFactory,
   getDOM,
   setRootDomAdapter
-} from "./chunk-4PO65GC5.js";
+} from "./chunk-IH56RNHN.js";
 import {
   APP_ID,
   ApplicationRef,
@@ -29725,11 +29727,11 @@ function createRequestHandler(handler) {
 }
 
 export {
-  getFirstHeaderValue,
-  validateUrl,
   SERVER_CONTEXT,
   renderModule,
   renderApplication,
+  getFirstHeaderValue,
+  validateUrl,
   setAngularAppManifest,
   setAngularAppEngineManifest,
   RenderMode,
@@ -29755,4 +29757,4 @@ export {
    * License: MIT
    *)
 */
-//# sourceMappingURL=chunk-OLT3AOQA.js.map
+//# sourceMappingURL=chunk-SYOXSLFH.js.map

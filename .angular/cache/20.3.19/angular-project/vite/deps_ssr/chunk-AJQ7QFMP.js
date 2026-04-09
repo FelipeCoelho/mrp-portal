@@ -1,13 +1,15 @@
 import { createRequire } from 'module';const require = createRequire(import.meta.url);
 import {
+  Title
+} from "./chunk-CB6OW76P.js";
+import {
   HashLocationStrategy,
   LOCATION_INITIALIZED,
   Location,
   LocationStrategy,
   PathLocationStrategy,
-  Title,
   ViewportScroller
-} from "./chunk-4PO65GC5.js";
+} from "./chunk-IH56RNHN.js";
 import {
   APP_BOOTSTRAP_LISTENER,
   ApplicationRef,
@@ -6104,4 +6106,4 @@ export {
    * License: MIT
    *)
 */
-//# sourceMappingURL=chunk-6VO2OXE4.js.map
+//# sourceMappingURL=chunk-AJQ7QFMP.js.map
