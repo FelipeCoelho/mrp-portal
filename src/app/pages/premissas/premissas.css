@@ -1,0 +1,28 @@
+/* Filters bar */
+.filters-bar { display: flex; align-items: flex-end; gap: 16px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 0.75rem; font-weight: 600; color: var(--color-text-label); }
+.filter-search { flex: 1; min-width: 200px; }
+.filter-nivel { min-width: 180px; }
+.filter-status { min-width: 130px; }
+.filter-nivel select, .filter-status select { width: 100%; padding: 7px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 0.82rem; color: var(--color-text); background: var(--color-surface); }
+.filter-nivel select:focus, .filter-status select:focus { outline: none; border-color: var(--color-info); box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+.filter-group-right { margin-left: auto; display: flex; align-items: flex-end; }
+
+@media (max-width: 768px) { .filters-bar { flex-direction: column; align-items: stretch; } .filter-group-right { margin-left: 0; } }
+
+/* Cards */
+.premissa-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.premissa-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.card-header-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.card-config { font-size: 0.88rem; font-weight: 700; color: var(--color-text); }
+.card-nivel { font-size: 0.72rem; color: var(--color-text-secondary); }
+.card-details { display: flex; flex-direction: column; gap: 4px; }
+.card-detail-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--color-text-label); }
+.card-detail-row span:last-child { font-weight: 600; color: var(--color-text); }
+.card-footer { display: flex; gap: 8px; border-top: 1px solid var(--color-border-light); padding-top: 12px; }
+.card-action-btn { flex: 1; justify-content: center; }
+
+/* Modal actions */
+.modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+.modal-btn-half { flex: 1; justify-content: center; }

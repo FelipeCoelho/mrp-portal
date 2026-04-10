@@ -1,0 +1,204 @@
+<div class="page-container">
+  <div class="page-header-row">
+    <div class="page-header">
+      <h1 class="page-title">Premissas de Reabastecimento</h1>
+      <p class="page-subtitle">Configuração de parâmetros para planejamento de materiais</p>
+    </div>
+    <button class="btn btn-primary" (click)="novo()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova Premissa
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="filter-group filter-search">
+      <label>Buscar</label>
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar por material, CD, bandeira..."
+          [ngModel]="filtroBusca()" (ngModelChange)="filtroBusca.set($event)" name="busca" />
+      </div>
+    </div>
+    <div class="filter-group filter-nivel">
+      <label>Nível de Configuração</label>
+      <select [ngModel]="filtroNivel()" (ngModelChange)="filtroNivel.set($event)" name="filtroNivel">
+        <option value="">Todos</option>
+        @for (n of niveis; track n) { <option [value]="n">{{ n }}</option> }
+      </select>
+    </div>
+    <div class="filter-group filter-status">
+      <label>Status</label>
+      <select [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)" name="filtroStatus">
+        <option value="">Todos</option>
+        <option value="ativo">Ativos</option>
+        <option value="inativo">Inativos</option>
+      </select>
+    </div>
+    <div class="filter-group-right">
+      <div class="view-toggle">
+        <button class="toggle-btn" [class.active]="visao() === 'cards'" (click)="visao.set('cards')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Cards
+        </button>
+        <button class="toggle-btn" [class.active]="visao() === 'tabela'" (click)="visao.set('tabela')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Tabela
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <p class="result-count">Exibindo 1–{{ premissasFiltradas().length }} de {{ premissasFiltradas().length }} registro(s)</p>
+
+  <!-- Table View -->
+  @if (visao() === 'tabela') {
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>NÍVEL</th>
+            <th>CONFIGURAÇÃO</th>
+            <th>EST. SEGURANÇA</th>
+            <th>QTD. MÁXIMA</th>
+            <th>DIAS ESTOQUE</th>
+            <th>CONSIGNADO</th>
+            <th>STATUS</th>
+            <th>AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of premissasFiltradas(); track p.id) {
+            <tr>
+              <td>{{ p.nivel }}</td>
+              <td>{{ p.configuracao }}</td>
+              <td>{{ p.estSeguranca }}</td>
+              <td>{{ p.qtdMaxima }}</td>
+              <td>{{ p.diasEstoque }}</td>
+              <td>{{ p.consignado ? 'Sim' : 'Não' }}</td>
+              <td><span class="badge" [class.badge-green]="p.ativo" [class.badge-red]="!p.ativo">{{ p.ativo ? 'Ativo' : 'Inativo' }}</span></td>
+              <td>
+                <div class="table-actions">
+                  <button class="btn btn-sm btn-outline" (click)="editar(p)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/></svg>
+                    Editar
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="desativar(p.id)" [disabled]="!p.ativo">Desativar</button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="8" class="empty-cell">Nenhuma premissa cadastrada.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Cards View -->
+  @if (visao() === 'cards') {
+    <div class="cards-grid">
+      @for (p of premissasFiltradas(); track p.id) {
+        <div class="premissa-card">
+          <div class="card-header-row">
+            <div>
+              <div class="card-config">{{ p.configuracao }}</div>
+              <div class="card-nivel">{{ p.nivel }}</div>
+            </div>
+            <span class="badge" [class.badge-green]="p.ativo" [class.badge-red]="!p.ativo">{{ p.ativo ? 'Ativo' : 'Inativo' }}</span>
+          </div>
+          <div class="card-details">
+            <div class="card-detail-row"><span>Estoque de Segurança:</span><span>{{ p.estSeguranca }}</span></div>
+            <div class="card-detail-row"><span>Qtd. Máxima:</span><span>{{ p.qtdMaxima }}</span></div>
+            <div class="card-detail-row"><span>Dias de Estoque:</span><span>{{ p.diasEstoque }}</span></div>
+            <div class="card-detail-row"><span>Consignado:</span><span>{{ p.consignado ? 'Sim' : 'Não' }}</span></div>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-secondary card-action-btn" (click)="editar(p)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/></svg>
+              Editar
+            </button>
+            <button class="btn btn-outline-danger card-action-btn" (click)="desativar(p.id)" [disabled]="!p.ativo">Desativar</button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state"><p>Nenhuma premissa cadastrada.</p></div>
+      }
+    </div>
+  }
+
+  <!-- Modal -->
+  @if (mostrarForm()) {
+    <div class="modal-overlay" (click)="cancelar()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ editandoId() !== null ? 'Editar' : 'Cadastrar' }} Premissa de Reabastecimento</h2>
+          <button class="modal-close" (click)="cancelar()">×</button>
+        </div>
+
+        @if (erros().length > 0) {
+          <div class="error-box" role="alert">
+            @for (erro of erros(); track erro) { <p>{{ erro }}</p> }
+          </div>
+        }
+
+        <form (ngSubmit)="salvar()">
+          <div class="form-group">
+            <label>Nível de Configuração *</label>
+            <select [ngModel]="form().nivel" (ngModelChange)="updateForm('nivel', $event)" name="nivel">
+              <option value="" disabled>Selecione um nível de configuração</option>
+              @for (n of niveis; track n) { <option [value]="n">{{ n }}</option> }
+            </select>
+          </div>
+
+          @if (mostrarMaterial()) {
+            <div class="form-group">
+              <label>Material *</label>
+              <select [ngModel]="form().material" (ngModelChange)="updateForm('material', $event)" name="material">
+                <option value="" disabled>Selecione um material</option>
+                @for (m of materiais; track m.codigo) {
+                  <option [value]="m.codigo">{{ m.codigo }} - {{ m.nome }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (mostrarCd()) {
+            <div class="form-group">
+              <label>Centro de Distribuição *</label>
+              <select [ngModel]="form().cd" (ngModelChange)="updateForm('cd', $event)" name="cd">
+                <option value="" disabled>Selecione um CD</option>
+                @for (c of cds; track c) { <option [value]="c">{{ c }}</option> }
+              </select>
+            </div>
+          }
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Estoque de Segurança *</label>
+              <input type="number" [ngModel]="form().estSeguranca" (ngModelChange)="updateForm('estSeguranca', $event)" name="estSeguranca" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>Quantidade Máxima *</label>
+              <input type="number" [ngModel]="form().qtdMaxima" (ngModelChange)="updateForm('qtdMaxima', $event)" name="qtdMaxima" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label>Dias de Estoque *</label>
+              <input type="number" [ngModel]="form().diasEstoque" (ngModelChange)="updateForm('diasEstoque', $event)" name="diasEstoque" placeholder="0" />
+            </div>
+          </div>
+
+          <label class="checkbox-item-inline" style="margin-bottom: 16px;">
+            <input type="checkbox" [ngModel]="form().consignado" (ngModelChange)="updateForm('consignado', $event)" name="consignado" />
+            <span>Estoque Consignado</span>
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary modal-btn-half" (click)="cancelar()">Cancelar</button>
+            <button type="submit" class="btn btn-primary modal-btn-half">Cadastrar Premissa</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -9,10 +9,12 @@ import { RelatorioContratosComponent } from './pages/relatorio-contratos/relator
 import { RelatorioAltaMedicamentosComponent } from './pages/relatorio-alta-medicamentos/relatorio-alta-medicamentos';
 import { RelatorioMrpComponent } from './pages/relatorio-mrp/relatorio-mrp';
 import { CalculoMrpComponent } from './pages/calculo-mrp/calculo-mrp';
+import { PremissasComponent } from './pages/premissas/premissas';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'centros-de-distribuicao', pathMatch: 'full' },
   { path: 'calculo-mrp', component: CalculoMrpComponent },
+  { path: 'premissas-reabastecimento', component: PremissasComponent },
   { path: 'centros-de-distribuicao', component: CentroDeDistribuicaoComponent },
   { path: 'alta-de-medicamentos', component: AltaDeMedicamentoComponent },
   { path: 'contratos', component: ContratoComponent },
