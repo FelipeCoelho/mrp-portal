@@ -1,13 +1,25 @@
 import { Routes } from '@angular/router';
-import { EstadoComponent } from './pages/estado/estado';
-import { ConsumoMaterialComponent } from './pages/consumo-material/consumo-material';
+import { CentroDeDistribuicaoComponent } from './pages/centro-de-distribuicao/centro-de-distribuicao';
+import { AltaDeMedicamentoComponent } from './pages/alta-de-medicamento/alta-de-medicamento';
 import { ContratoComponent } from './pages/contrato/contrato';
-import { RastreabilidadeComponent } from './pages/rastreabilidade/rastreabilidade';
+import { FrequenciaExecucaoComponent } from './pages/frequencia-execucao/frequencia-execucao';
+import { RelatoriosComponent } from './pages/relatorios/relatorios';
+import { RelatorioPremissasComponent } from './pages/relatorio-premissas/relatorio-premissas';
+import { RelatorioContratosComponent } from './pages/relatorio-contratos/relatorio-contratos';
+import { RelatorioAltaMedicamentosComponent } from './pages/relatorio-alta-medicamentos/relatorio-alta-medicamentos';
+import { RelatorioMrpComponent } from './pages/relatorio-mrp/relatorio-mrp';
+import { CalculoMrpComponent } from './pages/calculo-mrp/calculo-mrp';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'estados', pathMatch: 'full' },
-  { path: 'estados', component: EstadoComponent },
-  { path: 'consumo-materiais', component: ConsumoMaterialComponent },
+  { path: '', redirectTo: 'centros-de-distribuicao', pathMatch: 'full' },
+  { path: 'calculo-mrp', component: CalculoMrpComponent },
+  { path: 'centros-de-distribuicao', component: CentroDeDistribuicaoComponent },
+  { path: 'alta-de-medicamentos', component: AltaDeMedicamentoComponent },
   { path: 'contratos', component: ContratoComponent },
-  { path: 'rastreabilidade', component: RastreabilidadeComponent },
+  { path: 'frequencia-execucao', component: FrequenciaExecucaoComponent },
+  { path: 'relatorios', component: RelatoriosComponent },
+  { path: 'relatorios/premissas', component: RelatorioPremissasComponent },
+  { path: 'relatorios/contratos', component: RelatorioContratosComponent },
+  { path: 'relatorios/alta-medicamentos', component: RelatorioAltaMedicamentosComponent },
+  { path: 'relatorios/mrp', component: RelatorioMrpComponent },
 ];

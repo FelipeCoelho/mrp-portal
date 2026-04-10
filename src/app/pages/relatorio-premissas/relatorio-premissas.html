@@ -1,0 +1,173 @@
+<div class="page-container">
+  <a routerLink="/relatorios" class="back-link">← Voltar para lista de relatórios</a>
+
+  <div class="page-header">
+    <h1 class="page-title">Relatório de Premissas</h1>
+    <p class="page-subtitle">Listagem completa de premissas de reabastecimento</p>
+  </div>
+
+  <!-- Filtros Panel with Toolbar -->
+  <div class="filtros-panel">
+    <div class="toolbar-row">
+      <button class="btn btn-outline" (click)="toggleFiltros()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros
+      </button>
+      <button class="btn btn-primary" (click)="exportarCSV()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar CSV
+      </button>
+    </div>
+
+    @if (mostrarFiltros()) {
+      <div class="filtros-body">
+        <div class="filtros-top-row">
+          <div class="filtro-group filtro-tipos">
+            <label>Tipo de Nível</label>
+            <div class="tipos-nivel-list">
+              @for (t of tiposNivel; track t) {
+                <label class="checkbox-vertical">
+                  <input type="checkbox" [checked]="isTipoNivelSelecionado(t)" (change)="toggleTipoNivel(t)" />
+                  <span>{{ t }}</span>
+                </label>
+              }
+            </div>
+          </div>
+          <div class="filtro-right-col">
+            <div class="filtro-group">
+              <label>Material (De)</label>
+              <input type="text" placeholder="Código inicial" [ngModel]="filtros().materialDe" (ngModelChange)="updateFiltro('materialDe', $event)" name="materialDe" />
+            </div>
+            <div class="filtro-group">
+              <label>Material (Até)</label>
+              <input type="text" placeholder="Código final" [ngModel]="filtros().materialAte" (ngModelChange)="updateFiltro('materialAte', $event)" name="materialAte" />
+            </div>
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>CD (De)</label>
+            <input type="text" placeholder="Código inicial" [ngModel]="filtros().cdDe" (ngModelChange)="updateFiltro('cdDe', $event)" name="cdDe" />
+          </div>
+          <div class="filtro-group">
+            <label>CD (Até)</label>
+            <input type="text" placeholder="Código final" [ngModel]="filtros().cdAte" (ngModelChange)="updateFiltro('cdAte', $event)" name="cdAte" />
+          </div>
+          <div class="filtro-group">
+            <label>Fornecedor (De)</label>
+            <input type="text" placeholder="Código inicial" [ngModel]="filtros().fornecedorDe" (ngModelChange)="updateFiltro('fornecedorDe', $event)" name="fornecedorDe" />
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Fornecedor (Até)</label>
+            <input type="text" placeholder="Código final" [ngModel]="filtros().fornecedorAte" (ngModelChange)="updateFiltro('fornecedorAte', $event)" name="fornecedorAte" />
+          </div>
+          <div class="filtro-group">
+            <label>Bandeira GMR</label>
+            <select [ngModel]="filtros().bandeiraCmr" (ngModelChange)="updateFiltro('bandeiraCmr', $event)" name="bandeiraCmr">
+              <option value="">Busca pela bandeira</option>
+              @for (b of bandeiras; track b) { <option [value]="b">{{ b }}</option> }
+            </select>
+          </div>
+          <div class="filtro-group">
+            <label>Curva</label>
+            <select [ngModel]="filtros().curva" (ngModelChange)="updateFiltro('curva', $event)" name="curva">
+              <option value="">Busca pela curva</option>
+              @for (c of curvas; track c) { <option [value]="c">{{ c }}</option> }
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Data de Criação (De)</label>
+            <input type="date" [ngModel]="filtros().dataCriacaoDe" (ngModelChange)="updateFiltro('dataCriacaoDe', $event)" name="dataCriacaoDe" />
+          </div>
+          <div class="filtro-group">
+            <label>Data de Criação (Até)</label>
+            <input type="date" [ngModel]="filtros().dataCriacaoAte" (ngModelChange)="updateFiltro('dataCriacaoAte', $event)" name="dataCriacaoAte" />
+          </div>
+          <div class="filtro-group">
+            <label>Usuário de Criação</label>
+            <input type="text" placeholder="Buscar por nome ou código do usuário" [ngModel]="filtros().usuarioCriacao" (ngModelChange)="updateFiltro('usuarioCriacao', $event)" name="usuarioCriacao" />
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group" style="max-width: 250px;">
+            <label>Considerar Consignado</label>
+            <select [ngModel]="filtros().consignado" (ngModelChange)="updateFiltro('consignado', $event)" name="consignado">
+              <option value="">Sim / Não</option>
+              <option value="Sim">Sim</option>
+              <option value="Não">Não</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-footer">
+          <button class="limpar-link" (click)="limparFiltros()">× Limpar Filtros</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Count -->
+  <p class="result-count">Exibindo 1–{{ dadosFiltrados().length }} de {{ dadosFiltrados().length }} registro(s)</p>
+
+  <!-- Table -->
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>MATERIAL</th>
+          <th>CD</th>
+          <th>FORNECEDOR</th>
+          <th>BANDEIRA CMR</th>
+          <th>CURVA</th>
+          <th>QTD ESTOQUE SEG.</th>
+          <th>QTD MÁXIMA</th>
+          <th>DIAS ESTOQUE</th>
+          <th>CONSIGNADO</th>
+          <th>CRIADO EM</th>
+          <th>CRIADO POR</th>
+          <th>ALTERADO EM</th>
+          <th>ALTERADO POR</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of dadosFiltrados(); track d.material + d.cd) {
+          <tr>
+            <td>
+              <div class="cell-two-line">
+                <span class="cell-main">{{ d.material }}</span>
+                <span class="cell-sub">{{ d.materialDesc }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="cell-two-line">
+                <span class="cell-main">{{ d.cd }}</span>
+                <span class="cell-sub">{{ d.cdNome }}</span>
+              </div>
+            </td>
+            <td>{{ d.fornecedor }}</td>
+            <td>{{ d.bandeiraCmr }}</td>
+            <td>{{ d.curva }}</td>
+            <td>{{ d.qtdEstoqueSeg }}</td>
+            <td>{{ d.qtdMaxima }}</td>
+            <td>{{ d.diasEstoque }}</td>
+            <td>{{ d.consignado }}</td>
+            <td class="cell-small">{{ d.criadoEm }}</td>
+            <td class="cell-small cell-mono">{{ d.criadoPor }}</td>
+            <td class="cell-small">{{ d.alteradoEm }}</td>
+            <td class="cell-small cell-mono">{{ d.alteradoPor }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="13" class="empty-cell">Nenhum registro encontrado.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

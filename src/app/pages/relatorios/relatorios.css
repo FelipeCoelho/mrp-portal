@@ -1,0 +1,76 @@
+/* Page */
+.page-container { padding: 28px 32px; }
+@media (max-width: 768px) { .page-container { padding: 16px; } }
+
+/* Header */
+.page-header { margin-bottom: 28px; }
+.page-title { font-size: 1.35rem; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+.page-subtitle { font-size: 0.82rem; color: #64748b; }
+
+/* Grid */
+.relatorios-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 768px) { .relatorios-grid { grid-template-columns: 1fr; } }
+
+/* Card */
+.relatorio-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: box-shadow .15s;
+  cursor: pointer;
+}
+
+.relatorio-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+}
+
+.relatorio-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.relatorio-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.relatorio-content h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.relatorio-content p {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.relatorio-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #1e3a5f;
+  cursor: pointer;
+  transition: color .15s;
+}
+
+.relatorio-link:hover {
+  color: #3b82f6;
+  text-decoration: underline;
+}

@@ -1,205 +1,407 @@
-<div class="container">
-  <h1>Cadastro de Contratos</h1>
+<div class="page-container">
 
-  <div class="toolbar">
-    <button class="btn btn-primary" (click)="novo()">+ Novo Contrato</button>
-  </div>
-
+  <!-- ==================== WIZARD ==================== -->
   @if (mostrarForm()) {
-    <div class="form-card">
-      <h2>{{ editandoId() !== null ? 'Editar' : 'Novo' }} Contrato</h2>
+    <div class="wizard-page">
+      <div class="wizard-header">
+        <button class="wizard-back" (click)="wizardVoltar()" type="button" aria-label="Voltar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <div>
+          <h1 class="wizard-title">{{ editandoId() !== null ? 'Editar' : 'Novo' }} Contrato</h1>
+          <p class="wizard-subtitle">Preencha as informações do contrato em etapas</p>
+        </div>
+      </div>
+
+      <div class="stepper">
+        <div class="step" [class.active]="etapa() === 1" [class.completed]="etapa() > 1">
+          <span class="step-number">
+            @if (etapa() > 1) {
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            } @else { 1 }
+          </span>
+          <span class="step-label">Cliente e Vigência</span>
+        </div>
+        <div class="step-line" [class.active]="etapa() > 1"></div>
+        <div class="step" [class.active]="etapa() === 2">
+          <span class="step-number">2</span>
+          <span class="step-label">Materiais</span>
+        </div>
+      </div>
 
       @if (erros().length > 0) {
-        <div class="erros" role="alert">
-          @for (erro of erros(); track erro) {
-            <p>{{ erro }}</p>
-          }
+        <div class="error-box" role="alert">
+          @for (erro of erros(); track erro) { <p>{{ erro }}</p> }
         </div>
       }
 
-      <form (ngSubmit)="salvar()">
-        <div class="form-row">
+      <!-- Step 1 -->
+      @if (etapa() === 1) {
+        <div class="wizard-card">
           <div class="form-group">
-            <label for="inicioVigencia">Início da Vigência</label>
-            <input id="inicioVigencia" type="date"
-              [ngModel]="form().inicioVigencia"
-              (ngModelChange)="updateForm('inicioVigencia', $event)"
-              name="inicioVigencia" required />
+            <label>Cliente *</label>
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Buscar cliente por código ou nome..."
+                [ngModel]="buscaCliente()" (ngModelChange)="buscaCliente.set($event)"
+                (focus)="mostrarDropdownCliente.set(true)" name="clienteBusca" autocomplete="off" />
+            </div>
+            @if (mostrarDropdownCliente() && clientesFiltrados().length > 0) {
+              <div class="dropdown-list">
+                @for (c of clientesFiltrados(); track c.codigo) {
+                  <div class="dropdown-item" (click)="selecionarCliente(c)">{{ c.codigo }} - {{ c.nome }}</div>
+                }
+              </div>
+            }
+            @if (form().codigoClienteSap) {
+              <div class="selected-tag">
+                <span>{{ form().codigoClienteSap }} - {{ getNomeCliente(form().codigoClienteSap) }}</span>
+                <button type="button" class="tag-remove" (click)="limparCliente()">×</button>
+              </div>
+            }
           </div>
-          <div class="form-group">
-            <label for="fimVigencia">Fim da Vigência</label>
-            <input id="fimVigencia" type="date"
-              [ngModel]="form().fimVigencia"
-              (ngModelChange)="updateForm('fimVigencia', $event)"
-              name="fimVigencia" required />
+          <div class="form-row">
+            <div class="form-group">
+              <label>Data Início *</label>
+              <input type="date" [ngModel]="form().inicioVigencia" (ngModelChange)="updateForm('inicioVigencia', $event)" name="inicioVigencia" />
+            </div>
+            <div class="form-group">
+              <label>Data Fim *</label>
+              <input type="date" [ngModel]="form().fimVigencia" (ngModelChange)="updateForm('fimVigencia', $event)" name="fimVigencia" />
+            </div>
+          </div>
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-secondary" (click)="cancelar()">Voltar</button>
+            <button type="button" class="btn btn-primary" (click)="proximaEtapa()">Próximo</button>
           </div>
         </div>
+      }
 
-        <div class="form-row">
+      <!-- Step 2 -->
+      @if (etapa() === 2) {
+        <div class="wizard-card">
           <div class="form-group">
-            <label for="codigoClienteSap">Código do Cliente SAP/TOVS</label>
-            <select id="codigoClienteSap"
-              [ngModel]="form().codigoClienteSap"
-              (ngModelChange)="updateForm('codigoClienteSap', $event)"
-              name="codigoClienteSap" required>
-              <option value="" disabled>Selecione um cliente...</option>
-              @for (c of clientesValidos; track c.codigo) {
-                <option [value]="c.codigo">{{ c.codigo }} - {{ c.nome }}</option>
-              }
-            </select>
+            <label>Buscar Materiais</label>
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Buscar por código ou nome do material..."
+                [ngModel]="buscaMaterial()" (ngModelChange)="buscaMaterial.set($event)" name="materialBusca" autocomplete="off" />
+            </div>
           </div>
-          <div class="form-group">
-            <label for="codigoMaterialSap">Código do Material SAP/KRAFT</label>
-            <select id="codigoMaterialSap"
-              [ngModel]="form().codigoMaterialSap"
-              (ngModelChange)="updateForm('codigoMaterialSap', $event)"
-              name="codigoMaterialSap" required>
-              <option value="" disabled>Selecione um material...</option>
-              @for (m of materiaisValidos; track m.codigo) {
-                <option [value]="m.codigo">{{ m.codigo }} - {{ m.nome }}</option>
-              }
-            </select>
-          </div>
-        </div>
 
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Salvar</button>
-          <button type="button" class="btn btn-secondary" (click)="cancelar()">Cancelar</button>
+          <div class="material-hint-row">
+            <p class="material-hint">Selecione os materiais que deseja adicionar ao contrato</p>
+            @if (materiaisSelecionados().length > 0) {
+              <button class="btn btn-outline btn-sm" (click)="abrirAdicionarMateriais()">
+                Adicionar {{ materiaisSelecionados().length }} Materiais
+              </button>
+            }
+          </div>
+
+          <div class="material-list">
+            @for (m of materiaisFiltrados(); track m.codigo) {
+              <label class="material-item" [class.selected]="isMaterialSelecionado(m.codigo)"
+                [class.configured]="materiaisConfigurados().length > 0 && !isMaterialSelecionado(m.codigo)">
+                <input type="checkbox" [checked]="isMaterialSelecionado(m.codigo)" (change)="toggleMaterial(m.codigo)" />
+                <div class="material-info">
+                  <span class="material-code">{{ m.codigo }}</span>
+                  <span class="material-name">{{ m.nome }}</span>
+                </div>
+              </label>
+            } @empty {
+              <div class="material-empty">Nenhum material encontrado</div>
+            }
+          </div>
+
+          <!-- Materiais Configurados -->
+          @if (materiaisConfigurados().length > 0) {
+            <h3 class="section-title">Materiais Configurados ({{ materiaisConfigurados().length }})</h3>
+            <div class="config-table-wrapper">
+              <table class="config-table">
+                <thead>
+                  <tr>
+                    <th>CÓDIGO</th>
+                    <th>NOME</th>
+                    <th>MESES</th>
+                    <th>TOTAL</th>
+                    <th>AÇÕES</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (mat of materiaisConfigurados(); track mat.codigoMaterial) {
+                    <tr>
+                      <td>{{ mat.codigoMaterial }}</td>
+                      <td>{{ getNomeMaterial(mat.codigoMaterial) }}</td>
+                      <td>{{ mat.consumos.length }}</td>
+                      <td>{{ totalConsumosMaterial(mat) }}</td>
+                      <td>
+                        <div class="config-actions">
+                          <button class="icon-btn" (click)="editarMaterialConfigurado(mat.codigoMaterial)" title="Editar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/></svg>
+                          </button>
+                          <button class="icon-btn icon-btn-danger" (click)="removerMaterialConfigurado(mat.codigoMaterial)" title="Remover">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-secondary" (click)="etapaAnterior()">Voltar</button>
+            <button type="button" class="btn btn-primary" (click)="abrirRevisao()">Revisar e Confirmar</button>
+          </div>
         </div>
-      </form>
+      }
     </div>
   }
 
-  <!-- Tabela de contratos -->
-  <div class="table-wrapper">
-    <table class="table" aria-label="Lista de contratos">
-      <thead>
-        <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Início Vigência</th>
-          <th scope="col">Fim Vigência</th>
-          <th scope="col">Cliente SAP</th>
-          <th scope="col">Material SAP</th>
-          <th scope="col">Consumos</th>
-          <th scope="col">Criado em</th>
-          <th scope="col">Alterado em</th>
-          <th scope="col">Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (contrato of contratos(); track contrato.id) {
-          <tr>
-            <td>{{ contrato.id }}</td>
-            <td>{{ contrato.inicioVigencia }}</td>
-            <td>{{ contrato.fimVigencia }}</td>
-            <td>{{ getNomeCliente(contrato.codigoClienteSap) }}</td>
-            <td>{{ getNomeMaterial(contrato.codigoMaterialSap) }}</td>
-            <td>{{ contrato.consumosMensais.length }}</td>
-            <td>{{ contrato.rastreabilidade.dataCriacao }} {{ contrato.rastreabilidade.horarioCriacao }}</td>
-            <td>
-              @if (contrato.rastreabilidade.dataAlteracao) {
-                {{ contrato.rastreabilidade.dataAlteracao }} {{ contrato.rastreabilidade.horarioAlteracao }}
-              } @else {
-                —
-              }
-            </td>
-            <td class="actions">
-              <button class="btn btn-sm btn-info" (click)="abrirConsumos(contrato.id)">Consumos</button>
-              <button class="btn btn-sm btn-edit" (click)="editar(contrato)">Editar</button>
-              <button class="btn btn-sm btn-delete" (click)="remover(contrato.id)">Remover</button>
-            </td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="9" class="empty">Nenhum contrato cadastrado.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Sub-tela: Consumos Mensais -->
-  @if (mostrarConsumos()) {
-    <div class="modal-overlay" (click)="fecharConsumos()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <h2>Consumos Mensais — Contrato #{{ contratoSelecionadoId() }}</h2>
-
-        <form class="consumo-form" (ngSubmit)="adicionarConsumo()">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="consumoAno">Ano</label>
-              <input id="consumoAno" type="number" min="2020" max="2040"
-                [ngModel]="consumoForm().ano"
-                (ngModelChange)="updateConsumoForm('ano', $event)"
-                name="consumoAno" required placeholder="Ex: 2026" />
-            </div>
-            <div class="form-group">
-              <label for="consumoMes">Mês</label>
-              <select id="consumoMes"
-                [ngModel]="consumoForm().mes"
-                (ngModelChange)="updateConsumoForm('mes', $event)"
-                name="consumoMes" required>
-                <option [ngValue]="null" disabled>Selecione...</option>
-                @for (m of meses; track m.valor) {
-                  <option [ngValue]="m.valor">{{ m.nome }}</option>
-                }
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="consumoQtd">Quantidade a Consumir</label>
-              <input id="consumoQtd" type="number" min="0" step="0.01"
-                [ngModel]="consumoForm().quantidade"
-                (ngModelChange)="updateConsumoForm('quantidade', $event)"
-                name="consumoQtd" required />
-            </div>
-            <div class="form-group form-group-btn">
-              <button type="submit" class="btn btn-primary">Adicionar</button>
-            </div>
+  <!-- ==================== MODAL: Configurar Material ==================== -->
+  @if (mostrarModalMaterial()) {
+    <div class="modal-overlay">
+      <div class="modal-content modal-material">
+        <div class="modal-header-row">
+          <div>
+            <h2>Adicionando Materiais ({{ materialAtualIndex() + 1 }}/{{ materiaisParaConfigurar().length }})</h2>
+            <p class="modal-material-name">{{ materialAtualCodigo() }} - {{ getNomeMaterial(materialAtualCodigo()) }}</p>
           </div>
-        </form>
+          <button class="modal-close" (click)="cancelarTudoModal()">×</button>
+        </div>
 
-        @if (contratoSelecionado(); as contrato) {
-          <table class="table" aria-label="Consumos mensais do contrato">
-            <thead>
-              <tr>
-                <th scope="col">Ano</th>
-                <th scope="col">Mês</th>
-                <th scope="col">Quantidade</th>
-                <th scope="col">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (consumo of contrato.consumosMensais; track consumo.id) {
-                <tr>
-                  <td>{{ consumo.ano }}</td>
-                  <td>{{ getNomeMes(consumo.mes) }}</td>
-                  <td>{{ consumo.quantidade }}</td>
-                  <td>
-                    <button class="btn btn-sm btn-delete" (click)="removerConsumo(consumo.id)">Remover</button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="4" class="empty">Nenhum consumo cadastrado.</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-
-          <!-- Rastreabilidade -->
-          <div class="rastreabilidade">
-            <h3>Rastreabilidade</h3>
-            <p>Criado em: {{ contrato.rastreabilidade.dataCriacao }} às {{ contrato.rastreabilidade.horarioCriacao }} por {{ contrato.rastreabilidade.usuarioCriacao }}</p>
-            @if (contrato.rastreabilidade.dataAlteracao) {
-              <p>Alterado em: {{ contrato.rastreabilidade.dataAlteracao }} às {{ contrato.rastreabilidade.horarioAlteracao }} por {{ contrato.rastreabilidade.usuarioAlteracao }}</p>
-            }
+        <div class="qtd-padrao-card">
+          <label>Quantidade Padrão (Aplicar a todos os meses)</label>
+          <div class="qtd-padrao-row">
+            <input type="text" placeholder="Digite a quantidade padrão"
+              [ngModel]="qtdPadrao()" (ngModelChange)="qtdPadrao.set($event)" name="qtdPadrao" />
+            <button class="btn btn-primary btn-sm" (click)="aplicarQtdPadrao()">Aplicar</button>
           </div>
-        }
+        </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="fecharConsumos()">Fechar</button>
+        <p class="consumo-mes-title">Quantidades por Mês (Total: {{ mesesVigencia().length }} meses)</p>
+        <div class="consumo-mes-grid">
+          @for (c of consumosMesAtual(); track c.mes + '-' + c.ano; let i = $index) {
+            <div class="consumo-mes-item">
+              <label>{{ getNomeMesCurto(c.mes) }} {{ c.ano }}</label>
+              <input type="text" [ngModel]="c.quantidade" (ngModelChange)="updateConsumoMes(i, $event)" [name]="'mes' + i" />
+            </div>
+          }
+        </div>
+
+        <div class="modal-actions-row">
+          <button class="btn btn-secondary modal-btn-half" (click)="cancelarTudoModal()">Cancelar Tudo</button>
+          <button class="btn btn-primary modal-btn-half" (click)="proximoMaterial()">
+            {{ materialAtualIndex() + 1 < materiaisParaConfigurar().length ? 'Próximo Material' : 'Concluir' }}
+          </button>
         </div>
       </div>
     </div>
+  }
+
+  <!-- ==================== MODAL: Revisão ==================== -->
+  @if (mostrarRevisao()) {
+    <div class="modal-overlay">
+      <div class="modal-content modal-revisao">
+        <h2>Confirmar Dados do Contrato</h2>
+        <p class="revisao-subtitle">Revise as informações antes de salvar</p>
+
+        <div class="revisao-section revisao-cliente">
+          <h3>Dados do Cliente</h3>
+          <div class="revisao-row">
+            <span class="revisao-label">Cliente:</span>
+            <span>{{ getNomeCliente(form().codigoClienteSap) }} - Cliente {{ getNomeCliente(form().codigoClienteSap) }}</span>
+          </div>
+          <div class="revisao-row">
+            <span class="revisao-label">Vigência:</span>
+            <span>{{ formatarData(form().inicioVigencia) }} até {{ formatarData(form().fimVigencia) }}</span>
+          </div>
+        </div>
+
+        <div class="revisao-section revisao-materiais">
+          <h3>Materiais Configurados</h3>
+          @for (mat of materiaisConfigurados(); track mat.codigoMaterial) {
+            <div class="revisao-material-card">
+              <div class="revisao-mat-header">
+                <div>
+                  <span class="revisao-mat-code">{{ mat.codigoMaterial }}</span>
+                  <span class="revisao-mat-name">{{ getNomeMaterial(mat.codigoMaterial) }}</span>
+                </div>
+                <div class="revisao-mat-stats">
+                  <span>{{ mat.consumos.length }} meses</span>
+                  <span class="revisao-mat-total">Total: {{ totalConsumosMaterial(mat) }}</span>
+                </div>
+              </div>
+              <div class="revisao-mat-detail">
+                <span class="revisao-mat-detail-label">Detalhamento Mensal:</span>
+                <div class="revisao-tags">
+                  @for (c of mat.consumos; track c.mes + '-' + c.ano) {
+                    <span class="revisao-tag">{{ getNomeMesCurto(c.mes) }}/{{ c.ano }}: {{ c.quantidade }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="revisao-section revisao-atencao">
+          <h3>Atenção</h3>
+          <ul>
+            <li>Verifique se todos os dados estão corretos</li>
+            <li>As quantidades informadas serão utilizadas para planejamento</li>
+            <li>Após salvar, o contrato ficará ativo no sistema</li>
+          </ul>
+        </div>
+
+        <div class="modal-actions-row">
+          <button class="btn btn-secondary modal-btn-half" (click)="fecharRevisao()">Voltar para Edição</button>
+          <button class="btn btn-primary modal-btn-half" (click)="confirmarESalvar()">Confirmar e Salvar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== LISTAGEM ==================== -->
+  @if (!mostrarForm()) {
+    <div class="page-header-row">
+      <div class="page-header">
+        <h1 class="page-title">Contratos</h1>
+        <p class="page-subtitle">Gestão de contratos com clientes e consumo previsto</p>
+      </div>
+      <button class="btn btn-primary" (click)="novo()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Contrato
+      </button>
+    </div>
+
+    <div class="filters-bar">
+      <div class="filter-group filter-search">
+        <label>Buscar</label>
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar por cliente..." [ngModel]="filtroBusca()" (ngModelChange)="filtroBusca.set($event)" name="busca" />
+        </div>
+      </div>
+      <div class="filter-group filter-status">
+        <label>Status</label>
+        <select [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)" name="status">
+          <option value="">Todos</option>
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </div>
+      <div class="filter-group-right">
+        <div class="view-toggle">
+          <button class="toggle-btn" [class.active]="visao() === 'cards'" (click)="visao.set('cards')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Cards
+          </button>
+          <button class="toggle-btn" [class.active]="visao() === 'tabela'" (click)="visao.set('tabela')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Tabela
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    @if (visao() === 'cards') {
+      <div class="cards-grid">
+        @for (contrato of contratosFiltrados(); track contrato.id) {
+          <div class="contrato-card">
+            <div class="card-header-row">
+              <div>
+                <div class="card-client-code">{{ contrato.codigoClienteSap }}</div>
+                <div class="card-client-name">{{ getNomeCliente(contrato.codigoClienteSap) }}</div>
+              </div>
+              <span class="badge" [class.badge-green]="contrato.ativo" [class.badge-red]="!contrato.ativo">
+                {{ contrato.ativo ? 'Ativo' : 'Inativo' }}
+              </span>
+            </div>
+            <div class="card-details">
+              <div class="card-detail-row"><span>Materiais:</span><span>{{ contrato.materiais.length }}</span></div>
+              <div class="card-detail-row"><span>Início:</span><span>{{ formatarData(contrato.inicioVigencia) }}</span></div>
+              <div class="card-detail-row"><span>Término:</span><span>{{ formatarData(contrato.fimVigencia) }}</span></div>
+            </div>
+            <div class="card-materiais-tags">
+              <span class="card-mat-label">Materiais do contrato:</span>
+              <div class="card-mat-badges">
+                @for (m of contrato.materiais; track m.codigoMaterial) {
+                  <span class="mat-badge">{{ m.codigoMaterial }}</span>
+                }
+              </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-secondary card-action-btn" (click)="editar(contrato)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/></svg>
+                Editar
+              </button>
+              <button class="btn btn-outline-danger card-action-btn" (click)="desativar(contrato.id)" [disabled]="!contrato.ativo">
+                Desativar
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state"><p>Nenhum contrato encontrado</p></div>
+        }
+      </div>
+    }
+
+    <!-- Tabela -->
+    @if (visao() === 'tabela') {
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>CLIENTE</th>
+              <th>MATERIAIS</th>
+              <th>INÍCIO</th>
+              <th>TÉRMINO</th>
+              <th>STATUS</th>
+              <th>AÇÕES</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (contrato of contratosFiltrados(); track contrato.id) {
+              <tr>
+                <td>
+                  <div class="table-client">
+                    <span class="table-client-code">{{ contrato.codigoClienteSap }}</span>
+                    <span class="table-client-name">{{ getNomeCliente(contrato.codigoClienteSap) }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="table-mat-badges">
+                    @for (m of contrato.materiais; track m.codigoMaterial) {
+                      <span class="mat-badge">{{ m.codigoMaterial }}</span>
+                    }
+                  </div>
+                </td>
+                <td>{{ formatarData(contrato.inicioVigencia) }}</td>
+                <td>{{ formatarData(contrato.fimVigencia) }}</td>
+                <td>
+                  <span class="badge" [class.badge-green]="contrato.ativo" [class.badge-red]="!contrato.ativo">
+                    {{ contrato.ativo ? 'Ativo' : 'Inativo' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn btn-sm btn-outline" (click)="editar(contrato)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/></svg>
+                      Editar
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="desativar(contrato.id)" [disabled]="!contrato.ativo">Desativar</button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="empty-cell">Nenhum contrato encontrado</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
   }
 </div>

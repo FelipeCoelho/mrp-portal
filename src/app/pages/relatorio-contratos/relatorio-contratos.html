@@ -1,0 +1,154 @@
+<div class="page-container">
+  <a routerLink="/relatorios" class="back-link">← Voltar para lista de relatórios</a>
+
+  <div class="page-header">
+    <h1 class="page-title">Relatório de Contratos</h1>
+    <p class="page-subtitle">Contratos com clientes e metas de consumo mensal</p>
+  </div>
+
+  <div class="filtros-panel">
+    <div class="toolbar-row">
+      <button class="btn btn-outline" (click)="toggleFiltros()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros
+      </button>
+      <button class="btn btn-primary" (click)="exportarCSV()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar CSV
+      </button>
+    </div>
+
+    @if (mostrarFiltros()) {
+      <div class="filtros-body">
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Período de Vigência - Início</label>
+            <input type="date" [ngModel]="filtros().vigenciaInicio" (ngModelChange)="updateFiltro('vigenciaInicio', $event)" name="vigenciaInicio" />
+          </div>
+          <div class="filtro-group">
+            <label>Período de Vigência - Fim</label>
+            <input type="date" [ngModel]="filtros().vigenciaFim" (ngModelChange)="updateFiltro('vigenciaFim', $event)" name="vigenciaFim" />
+          </div>
+          <div class="filtro-group">
+            <label>Código do Cliente <span class="filtro-tag">Modo Range</span></label>
+            <input type="text" placeholder="Código exato ou parte do nome" [ngModel]="filtros().codigoCliente" (ngModelChange)="updateFiltro('codigoCliente', $event)" name="codigoCliente" />
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Nome do Cliente</label>
+            <input type="text" placeholder="Opcional para facilitar busca" [ngModel]="filtros().nomeCliente" (ngModelChange)="updateFiltro('nomeCliente', $event)" name="nomeCliente" />
+          </div>
+          <div class="filtro-group">
+            <label>Código do Material <span class="filtro-tag">modo range</span></label>
+            <input type="text" placeholder="Código exato ou parte do nome" [ngModel]="filtros().codigoMaterial" (ngModelChange)="updateFiltro('codigoMaterial', $event)" name="codigoMaterial" />
+          </div>
+          <div class="filtro-group">
+            <label>Nome do Material</label>
+            <input type="text" placeholder="Opcional para facilitar busca" [ngModel]="filtros().nomeMaterial" (ngModelChange)="updateFiltro('nomeMaterial', $event)" name="nomeMaterial" />
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Ano</label>
+            <input type="text" placeholder="Ex: 2025" [ngModel]="filtros().ano" (ngModelChange)="updateFiltro('ano', $event)" name="ano" />
+          </div>
+          <div class="filtro-group">
+            <label>Mês</label>
+            <select [ngModel]="filtros().mes" (ngModelChange)="updateFiltro('mes', $event)" name="mes">
+              <option value="">De 01 a 12</option>
+              <option value="1">01 - Janeiro</option>
+              <option value="2">02 - Fevereiro</option>
+              <option value="3">03 - Março</option>
+              <option value="4">04 - Abril</option>
+              <option value="5">05 - Maio</option>
+              <option value="6">06 - Junho</option>
+              <option value="7">07 - Julho</option>
+              <option value="8">08 - Agosto</option>
+              <option value="9">09 - Setembro</option>
+              <option value="10">10 - Outubro</option>
+              <option value="11">11 - Novembro</option>
+              <option value="12">12 - Dezembro</option>
+            </select>
+          </div>
+          <div class="filtro-group">
+            <label>Status do Contrato</label>
+            <select [ngModel]="filtros().statusContrato" (ngModelChange)="updateFiltro('statusContrato', $event)" name="statusContrato">
+              <option value="">Todos</option>
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Usuário de Criação</label>
+            <input type="text" placeholder="Buscar por nome ou código" [ngModel]="filtros().usuarioCriacao" (ngModelChange)="updateFiltro('usuarioCriacao', $event)" name="usuarioCriacao" />
+          </div>
+          <div class="filtro-group">
+            <label>Usuário de Alteração</label>
+            <input type="text" placeholder="Buscar por nome ou código" [ngModel]="filtros().usuarioAlteracao" (ngModelChange)="updateFiltro('usuarioAlteracao', $event)" name="usuarioAlteracao" />
+          </div>
+          <div class="filtro-group"></div>
+        </div>
+
+        <div class="filtros-footer">
+          <button class="limpar-link" (click)="limparFiltros()">× Limpar Filtros</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <p class="result-count">Exibindo 1–{{ dadosFiltrados().length }} de {{ dadosFiltrados().length }} registro(s)</p>
+
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>CLIENTE</th>
+          <th>MATERIAL</th>
+          <th>VIGÊNCIA</th>
+          <th>ANO</th>
+          <th>MÊS</th>
+          <th>QUANTIDADE</th>
+          <th>STATUS</th>
+          <th>CRIADO EM</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of dadosFiltrados(); track $index) {
+          <tr>
+            <td>
+              <div class="cell-two-line">
+                <span class="cell-main">{{ d.clienteCodigo }}</span>
+                <span class="cell-sub">{{ d.clienteNome }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="cell-two-line">
+                <span class="cell-main">{{ d.materialCodigo }}</span>
+                <span class="cell-sub">{{ d.materialNome }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="cell-two-line">
+                <span class="cell-main">{{ d.vigenciaInicio }}</span>
+                <span class="cell-sub">até {{ d.vigenciaFim }}</span>
+              </div>
+            </td>
+            <td>{{ d.ano }}</td>
+            <td>{{ d.mes | number:'2.0-0' }}</td>
+            <td>{{ d.quantidade }}</td>
+            <td><span class="badge badge-green">{{ d.status }}</span></td>
+            <td>{{ d.criadoEm }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="8" class="empty-cell">Nenhum registro encontrado.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

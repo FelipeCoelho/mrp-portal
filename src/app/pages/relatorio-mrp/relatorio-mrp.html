@@ -1,0 +1,113 @@
+<div class="page-container">
+  <a routerLink="/relatorios" class="back-link">← Voltar para lista de relatórios</a>
+
+  <div class="page-header">
+    <h1 class="page-title">Relatório MRP - Sugestão x Alteração</h1>
+    <p class="page-subtitle">Análise de alterações nas quantidades propostas pelo MRP</p>
+  </div>
+
+  <div class="filtros-panel">
+    <div class="toolbar-row">
+      <button class="btn btn-outline" (click)="toggleFiltros()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros
+      </button>
+      <button class="btn btn-primary" (click)="exportarCSV()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar CSV
+      </button>
+    </div>
+
+    @if (mostrarFiltros()) {
+      <div class="filtros-body">
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Código do Material <span class="filtro-tag">modo range</span></label>
+            <input type="text" placeholder="Busca por código" [ngModel]="filtros().codigoMaterial" (ngModelChange)="updateFiltro('codigoMaterial', $event)" name="codigoMaterial" />
+          </div>
+          <div class="filtro-group">
+            <label>Descrição do Material</label>
+            <input type="text" placeholder="Busca por nome" [ngModel]="filtros().descricaoMaterial" (ngModelChange)="updateFiltro('descricaoMaterial', $event)" name="descricaoMaterial" />
+          </div>
+          <div class="filtro-group">
+            <label>Código CD <span class="filtro-tag">modo range</span></label>
+            <input type="text" placeholder="Busca por código do CD" [ngModel]="filtros().codigoCd" (ngModelChange)="updateFiltro('codigoCd', $event)" name="codigoCd" />
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Código Fornecedor <span class="filtro-tag">Modo Range</span></label>
+            <input type="text" placeholder="Busca por código do fornecedor" [ngModel]="filtros().codigoFornecedor" (ngModelChange)="updateFiltro('codigoFornecedor', $event)" name="codigoFornecedor" />
+          </div>
+          <div class="filtro-group">
+            <label>Data da Alteração (De)</label>
+            <input type="date" [ngModel]="filtros().dataAlteracaoDe" (ngModelChange)="updateFiltro('dataAlteracaoDe', $event)" name="dataAlteracaoDe" />
+          </div>
+          <div class="filtro-group">
+            <label>Data da Alteração (Até)</label>
+            <input type="date" [ngModel]="filtros().dataAlteracaoAte" (ngModelChange)="updateFiltro('dataAlteracaoAte', $event)" name="dataAlteracaoAte" />
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Usuário da Alteração</label>
+            <input type="text" placeholder="Nome ou login do usuário" [ngModel]="filtros().usuarioAlteracao" (ngModelChange)="updateFiltro('usuarioAlteracao', $event)" name="usuarioAlteracao" />
+          </div>
+          <div class="filtro-group">
+            <label>Possui Motivo da Alteração</label>
+            <select [ngModel]="filtros().motivoAlteracao" (ngModelChange)="updateFiltro('motivoAlteracao', $event)" name="motivoAlteracao">
+              <option value="">Todas</option>
+              @for (m of motivos; track m) { <option [value]="m">{{ m }}</option> }
+            </select>
+          </div>
+          <div class="filtro-group"></div>
+        </div>
+
+        <div class="filtros-footer">
+          <button class="limpar-link" (click)="limparFiltros()">× Limpar Filtros</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <p class="result-count">{{ dadosFiltrados().length }} registro(s) encontrado(s)</p>
+
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>MATERIAL</th>
+          <th>CD</th>
+          <th>FORNECEDOR</th>
+          <th>QTD SUGERIDA MRP</th>
+          <th>QTD PROPOSTA ANTERIOR</th>
+          <th>NOVA QTD PROPOSTA</th>
+          <th>DIFERENÇA</th>
+          <th>MOTIVO</th>
+          <th>DATA/HORA ALTERAÇÃO</th>
+          <th>USUÁRIO</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of dadosFiltrados(); track $index) {
+          <tr>
+            <td>{{ d.material }}</td>
+            <td>{{ d.cd }}</td>
+            <td>{{ d.fornecedor }}</td>
+            <td>{{ d.qtdSugeridaMrp }}</td>
+            <td>{{ d.qtdPropostaAnterior }}</td>
+            <td>{{ d.novaQtdProposta }}</td>
+            <td>{{ d.diferenca }}</td>
+            <td>{{ d.motivo }}</td>
+            <td>{{ d.dataHoraAlteracao }}</td>
+            <td>{{ d.usuario }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="10" class="empty-cell">Não há alterações registradas no MRP no momento.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

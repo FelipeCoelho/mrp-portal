@@ -5,6 +5,11 @@ export interface ConsumoMensal {
   quantidade: number;
 }
 
+export interface MaterialContrato {
+  codigoMaterial: string;
+  consumosMensais: ConsumoMensal[];
+}
+
 export interface Rastreabilidade {
   dataCriacao: string;
   horarioCriacao: string;
@@ -19,8 +24,8 @@ export interface Contrato {
   inicioVigencia: string;
   fimVigencia: string;
   codigoClienteSap: string;
-  codigoMaterialSap: string;
-  consumosMensais: ConsumoMensal[];
+  materiais: MaterialContrato[];
+  ativo: boolean;
   rastreabilidade: Rastreabilidade;
 }
 

@@ -1,0 +1,106 @@
+<div class="page-container">
+  <a routerLink="/relatorios" class="back-link">← Voltar para lista de relatórios</a>
+
+  <div class="page-header">
+    <h1 class="page-title">Relatório de Alta de Medicamentos</h1>
+    <p class="page-subtitle">Materiais classificados nos níveis de alta de medicamentos</p>
+  </div>
+
+  <div class="filtros-panel">
+    <div class="toolbar-row">
+      <button class="btn btn-outline" (click)="toggleFiltros()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros
+      </button>
+      <button class="btn btn-primary" (click)="exportarCSV()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar CSV
+      </button>
+    </div>
+
+    @if (mostrarFiltros()) {
+      <div class="filtros-body">
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Código do Material <span class="filtro-tag">Modo Range</span></label>
+            <input type="text" placeholder="Busca exata ou por parte do código" [ngModel]="filtros().codigoMaterial" (ngModelChange)="updateFiltro('codigoMaterial', $event)" name="codigoMaterial" />
+          </div>
+          <div class="filtro-group">
+            <label>Descrição do Material</label>
+            <input type="text" placeholder="Opcional, busca por nome parcial" [ngModel]="filtros().descricaoMaterial" (ngModelChange)="updateFiltro('descricaoMaterial', $event)" name="descricaoMaterial" />
+          </div>
+          <div class="filtro-group">
+            <label>Nível</label>
+            <select [ngModel]="filtros().nivel" (ngModelChange)="updateFiltro('nivel', $event)" name="nivel">
+              <option value="">Valores disponíveis: 1, 2, 3</option>
+              @for (n of niveis; track n) { <option [value]="n">{{ n }}</option> }
+            </select>
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group">
+            <label>Data de Criação (De)</label>
+            <input type="date" [ngModel]="filtros().dataCriacaoDe" (ngModelChange)="updateFiltro('dataCriacaoDe', $event)" name="dataCriacaoDe" />
+          </div>
+          <div class="filtro-group">
+            <label>Data de Criação (Até)</label>
+            <input type="date" [ngModel]="filtros().dataCriacaoAte" (ngModelChange)="updateFiltro('dataCriacaoAte', $event)" name="dataCriacaoAte" />
+          </div>
+          <div class="filtro-group">
+            <label>Usuário da Criação</label>
+            <input type="text" placeholder="Nome ou login do usuário" [ngModel]="filtros().usuarioCriacao" (ngModelChange)="updateFiltro('usuarioCriacao', $event)" name="usuarioCriacao" />
+          </div>
+        </div>
+
+        <div class="filtros-row">
+          <div class="filtro-group" style="max-width: 300px;">
+            <label>Usuário da Alteração</label>
+            <input type="text" placeholder="Opcional" [ngModel]="filtros().usuarioAlteracao" (ngModelChange)="updateFiltro('usuarioAlteracao', $event)" name="usuarioAlteracao" />
+          </div>
+        </div>
+
+        <div class="filtros-footer">
+          <button class="limpar-link" (click)="limparFiltros()">× Limpar Filtros</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <p class="result-count">Exibindo 1–{{ dadosFiltrados().length }} de {{ dadosFiltrados().length }} registro(s)</p>
+
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>CÓDIGO DO MATERIAL</th>
+          <th>DESCRIÇÃO DO MATERIAL</th>
+          <th>NÍVEL DE ALTA</th>
+          <th>DATA DA CRIAÇÃO</th>
+          <th>HORÁRIO DA CRIAÇÃO</th>
+          <th>USUÁRIO DA CRIAÇÃO</th>
+          <th>DATA DA ALTERAÇÃO</th>
+          <th>HORÁRIO DA ALTERAÇÃO</th>
+          <th>USUÁRIO DA ALTERAÇÃO</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of dadosFiltrados(); track d.codigoMaterial) {
+          <tr>
+            <td>{{ d.codigoMaterial }}</td>
+            <td>{{ d.descricaoMaterial }}</td>
+            <td><span class="badge" [class]="'badge-nivel-' + d.nivelAlta.replace('Nível ', '')">{{ d.nivelAlta }}</span></td>
+            <td>{{ d.dataCriacao }}</td>
+            <td>{{ d.horarioCriacao }}</td>
+            <td>{{ d.usuarioCriacao }}</td>
+            <td>{{ d.dataAlteracao }}</td>
+            <td>{{ d.horarioAlteracao }}</td>
+            <td>{{ d.usuarioAlteracao }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="9" class="empty-cell">Nenhum registro encontrado.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

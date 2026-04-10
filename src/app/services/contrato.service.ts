@@ -1,30 +1,29 @@
 import { Injectable, signal } from '@angular/core';
-import { Contrato, ConsumoMensal, Rastreabilidade } from '../models/contrato.model';
+import { Contrato, MaterialContrato, Rastreabilidade } from '../models/contrato.model';
 
 @Injectable({ providedIn: 'root' })
 export class ContratoService {
   private contratos = signal<Contrato[]>([]);
   private nextId = signal(1);
-  private nextConsumoId = signal(1);
 
   readonly lista = this.contratos.asReadonly();
 
-  // Simulação de clientes válidos SAP/TOVS
   readonly clientesValidos = [
-    { codigo: 'CLI001', nome: 'Cliente Alpha' },
-    { codigo: 'CLI002', nome: 'Cliente Beta' },
-    { codigo: 'CLI003', nome: 'Cliente Gamma' },
-    { codigo: 'CLI004', nome: 'Cliente Delta' },
-    { codigo: 'CLI005', nome: 'Cliente Epsilon' },
+    { codigo: 'CLI001', nome: 'Empresa ABC Ltda' },
+    { codigo: 'CLI002', nome: 'Centro Oncológico Prontobaby' },
+    { codigo: 'CLI003', nome: 'Hospital São Lucas' },
+    { codigo: 'CLI004', nome: 'Clínica Vida Nova' },
+    { codigo: 'CLI005', nome: 'Farmácia Central' },
   ];
 
-  // Simulação de materiais válidos SAP/KRAFT
   readonly materiaisValidos = [
-    { codigo: 'MAT001', nome: 'Material A' },
-    { codigo: 'MAT002', nome: 'Material B' },
-    { codigo: 'MAT003', nome: 'Material C' },
-    { codigo: 'MAT004', nome: 'Material D' },
-    { codigo: 'MAT005', nome: 'Material E' },
+    { codigo: '100830', nome: 'CLEXANE 40MG 10SP 0,4ML+SIST SEG' },
+    { codigo: '101990', nome: 'LASIX C/S AMP 2ML' },
+    { codigo: '107528', nome: 'DYSPORT 500 UI CX C/ 1 FR AMP' },
+    { codigo: '107904', nome: 'KEYTRUDA 100MG/4ML SOL INJ X 4ML' },
+    { codigo: '108130', nome: 'ANSENTRON 8 MG CX AMP 4ML' },
+    { codigo: '109200', nome: 'AVASTIN 400MG/16ML SOL INJ' },
+    { codigo: '110050', nome: 'HERCEPTIN 440MG PO LIOF INJ' },
   ];
 
   validarCliente(codigo: string): boolean {
@@ -48,26 +47,34 @@ export class ContratoService {
     return {
       dataCriacao: agora.toLocaleDateString('pt-BR'),
       horarioCriacao: agora.toLocaleTimeString('pt-BR'),
-      usuarioCriacao: 'Usuário Logado',
+      usuarioCriacao: 'Usuário Demo',
     };
   }
 
-  private atualizarRastreabilidade(rastreabilidade: Rastreabilidade): Rastreabilidade {
+  private atualizarRastreabilidade(r: Rastreabilidade): Rastreabilidade {
     const agora = new Date();
     return {
-      ...rastreabilidade,
+      ...r,
       dataAlteracao: agora.toLocaleDateString('pt-BR'),
       horarioAlteracao: agora.toLocaleTimeString('pt-BR'),
-      usuarioAlteracao: 'Usuário Logado',
+      usuarioAlteracao: 'Usuário Demo',
     };
   }
 
-  adicionar(dados: Omit<Contrato, 'id' | 'consumosMensais' | 'rastreabilidade'>): number {
+  adicionar(dados: {
+    inicioVigencia: string;
+    fimVigencia: string;
+    codigoClienteSap: string;
+    materiais: MaterialContrato[];
+  }): number {
     const id = this.nextId();
     const contrato: Contrato = {
-      ...dados,
       id,
-      consumosMensais: [],
+      inicioVigencia: dados.inicioVigencia,
+      fimVigencia: dados.fimVigencia,
+      codigoClienteSap: dados.codigoClienteSap,
+      materiais: dados.materiais,
+      ativo: true,
       rastreabilidade: this.criarRastreabilidade(),
     };
     this.contratos.update((list) => [...list, contrato]);
@@ -75,13 +82,28 @@ export class ContratoService {
     return id;
   }
 
-  atualizar(id: number, dados: Omit<Contrato, 'id' | 'consumosMensais' | 'rastreabilidade'>): void {
+  atualizar(id: number, dados: {
+    inicioVigencia: string;
+    fimVigencia: string;
+    codigoClienteSap: string;
+    materiais: MaterialContrato[];
+  }): void {
     this.contratos.update((list) =>
       list.map((c) =>
         c.id === id
           ? { ...c, ...dados, rastreabilidade: this.atualizarRastreabilidade(c.rastreabilidade) }
-          : c
-      )
+          : c,
+      ),
+    );
+  }
+
+  desativar(id: number): void {
+    this.contratos.update((list) =>
+      list.map((c) =>
+        c.id === id
+          ? { ...c, ativo: false, rastreabilidade: this.atualizarRastreabilidade(c.rastreabilidade) }
+          : c,
+      ),
     );
   }
 
@@ -91,36 +113,5 @@ export class ContratoService {
 
   buscarPorId(id: number): Contrato | undefined {
     return this.contratos().find((c) => c.id === id);
-  }
-
-  // Consumos mensais
-  adicionarConsumo(contratoId: number, dados: Omit<ConsumoMensal, 'id'>): void {
-    const consumoId = this.nextConsumoId();
-    this.contratos.update((list) =>
-      list.map((c) =>
-        c.id === contratoId
-          ? {
-              ...c,
-              consumosMensais: [...c.consumosMensais, { ...dados, id: consumoId }],
-              rastreabilidade: this.atualizarRastreabilidade(c.rastreabilidade),
-            }
-          : c
-      )
-    );
-    this.nextConsumoId.update((n) => n + 1);
-  }
-
-  removerConsumo(contratoId: number, consumoId: number): void {
-    this.contratos.update((list) =>
-      list.map((c) =>
-        c.id === contratoId
-          ? {
-              ...c,
-              consumosMensais: c.consumosMensais.filter((cm) => cm.id !== consumoId),
-              rastreabilidade: this.atualizarRastreabilidade(c.rastreabilidade),
-            }
-          : c
-      )
-    );
   }
 }

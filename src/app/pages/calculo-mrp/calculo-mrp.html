@@ -1,0 +1,553 @@
+<div class="page-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">Cálculo de MRP</h1>
+    <p class="page-subtitle">Análise e ajuste de sugestões de compra</p>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-layout" (click)="abrirLayoutModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Layouts
+        @if (service.layoutAtivo(); as layout) {
+          <span class="layout-badge">{{ layout.nome }}</span>
+        }
+      </button>
+      <button class="btn btn-teal" (click)="abrirConfigurarColunas()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configurar Colunas
+      </button>
+      @if (hasChanges()) {
+        <button class="btn btn-orange" (click)="abrirSalvarLayout()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Salvar Alterações
+        </button>
+      }
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-dark">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Executar MRP
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros Avançados -->
+  <div class="filtros-section">
+    <button class="btn btn-outline filtros-toggle" (click)="toggleFiltros()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filtros Avançados
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.rotated]="mostrarFiltros()"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+
+    @if (mostrarFiltros()) {
+      <div class="filtros-panel">
+        <div class="filtros-grid">
+          <!-- Área MRP -->
+          <div class="filtro-group">
+            <label>Área MRP</label>
+            <select [ngModel]="filtroAreaMrp()" (ngModelChange)="filtroAreaMrp.set($event)">
+              <option value="">Todas</option>
+              <option value="area1">Área 1</option>
+              <option value="area2">Área 2</option>
+            </select>
+          </div>
+
+          <!-- Centro de Distribuição -->
+          <div class="filtro-group">
+            <label>Centro de Distribuição</label>
+            <div class="checkbox-list">
+              @for (cd of cdsDisponiveis; track cd) {
+                <label class="checkbox-item">
+                  <input type="checkbox" [checked]="filtroCds().includes(cd)" (change)="toggleFiltroCd(cd)" />
+                  {{ cd }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Tipo de Fornecedor -->
+          <div class="filtro-group">
+            <label>Tipo de Fornecedor</label>
+            <div class="checkbox-list">
+              @for (tipo of tiposFornecedor; track tipo) {
+                <label class="checkbox-item">
+                  <input type="checkbox" [checked]="filtroTipoFornecedor().includes(tipo)" (change)="toggleFiltroTipoFornecedor(tipo)" />
+                  {{ tipo }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Material -->
+          <div class="filtro-group">
+            <label>Material</label>
+            <input type="text" placeholder="Buscar material..." [ngModel]="filtroBuscaMaterial()" (ngModelChange)="filtroBuscaMaterial.set($event)" class="filtro-search" />
+            <div class="checkbox-list">
+              @for (mat of materiaisDisponiveis(); track mat) {
+                <label class="checkbox-item">
+                  <input type="checkbox" [checked]="filtroMateriais().includes(mat)" (change)="toggleFiltroMaterial(mat)" />
+                  {{ mat }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Bandeira GMR -->
+          <div class="filtro-group">
+            <label>Bandeira GMR</label>
+            <select [ngModel]="filtroBandeira()" (ngModelChange)="filtroBandeira.set($event)">
+              <option value="">Todas</option>
+              <option value="Bandeira A">Bandeira A</option>
+              <option value="Bandeira B">Bandeira B</option>
+              <option value="Bandeira C">Bandeira C</option>
+            </select>
+          </div>
+
+          <!-- Fornecedor -->
+          <div class="filtro-group">
+            <label>Fornecedor</label>
+            <input type="text" placeholder="Buscar fornecedor..." [ngModel]="filtroBuscaFornecedor()" (ngModelChange)="filtroBuscaFornecedor.set($event)" class="filtro-search" />
+            <div class="checkbox-list">
+              @for (forn of fornecedoresDisponiveis(); track forn) {
+                <label class="checkbox-item">
+                  <input type="checkbox" [checked]="filtroFornecedores().includes(forn)" (change)="toggleFiltroFornecedor(forn)" />
+                  {{ forn }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Consignado -->
+          <div class="filtro-group">
+            <label>Consignado</label>
+            <div class="checkbox-inline-group">
+              <label class="checkbox-item-inline">
+                <input type="checkbox" [ngModel]="filtroConsignadoSim()" (ngModelChange)="filtroConsignadoSim.set($event)" />
+                Sim
+              </label>
+              <label class="checkbox-item-inline">
+                <input type="checkbox" [ngModel]="filtroConsignadoNao()" (ngModelChange)="filtroConsignadoNao.set($event)" />
+                Não
+              </label>
+            </div>
+          </div>
+
+          <!-- Curva -->
+          <div class="filtro-group">
+            <label>Curva</label>
+            <div class="checkbox-list">
+              @for (curva of curvasDisponiveis; track curva) {
+                <label class="checkbox-item">
+                  <input type="checkbox" [checked]="filtroCurvas().includes(curva)" (change)="toggleFiltroCurva(curva)" />
+                  {{ curva }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Lote de Compra -->
+          <div class="filtro-group">
+            <label>Lote de Compra</label>
+            <input type="text" placeholder="Lote de compra" [ngModel]="filtroLoteCompra()" (ngModelChange)="filtroLoteCompra.set($event)" />
+          </div>
+
+          <!-- Saldo Fornecedor Compra -->
+          <div class="filtro-group">
+            <label>Saldo Fornecedor Compra</label>
+            <div class="checkbox-list">
+              @for (saldo of saldosFornecedor; track saldo) {
+                <label class="checkbox-item">
+                  <input type="checkbox" [checked]="filtroSaldoFornecedor().includes(saldo)" (change)="filtroSaldoFornecedor.set(toggleCheckboxList(filtroSaldoFornecedor(), saldo))" />
+                  {{ saldo }}
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="filtros-footer">
+          <button class="limpar-link" (click)="limparFiltros()">Limpar filtros</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Info Card -->
+  <div class="info-card">
+    <div class="info-card-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="info-card-content">
+      <span class="info-card-title">Execução Automática do MRP</span>
+      <div class="info-card-details">
+        <span class="info-badge">Diário</span>
+        <span class="info-separator">•</span>
+        <span class="info-text">Última execução: 09/04/2026 às 06:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search bar + toggle + export -->
+  <div class="search-bar-row">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" placeholder="Buscar por material, fornecedor..." [ngModel]="filtroBusca()" (ngModelChange)="filtroBusca.set($event)" />
+    </div>
+    <div class="visao-toggle">
+      <button class="visao-btn" [class.active]="visao() === 'materialCd'" (click)="setVisao('materialCd')">Visão Material/CD</button>
+      <button class="visao-btn" [class.active]="visao() === 'material'" (click)="setVisao('material')">Visão por Material</button>
+    </div>
+    <button class="btn btn-outline" (click)="exportarCSV()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar
+    </button>
+  </div>
+
+  <!-- Data Table -->
+  <div class="data-table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="col-checkbox sticky-col">
+            <input type="checkbox" [checked]="todosSelecionados()" (change)="toggleSelecionarTodos()" />
+          </th>
+          @if (service.layoutAtivo(); as layout) {
+            @for (colId of layout.colunas; track colId) {
+              <th>
+                <div class="th-content">
+                  <span>{{ getColunaNome(colId) }}</span>
+                  <div class="th-icons">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 15l5 5 5-5"/><path d="M7 9l5-5 5 5"/></svg>
+                  </div>
+                </div>
+              </th>
+            }
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (registro of registrosFiltrados(); track registro.codigoMaterial) {
+          <tr>
+            <td class="col-checkbox sticky-col">
+              <input type="checkbox" [checked]="isRegistroSelecionado(registro.codigoMaterial)" (change)="toggleSelecionarRegistro(registro.codigoMaterial)" />
+            </td>
+            @if (service.layoutAtivo(); as layout) {
+              @for (colId of layout.colunas; track colId) {
+                <td>{{ getColunaValor(registro, colId) }}</td>
+              }
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td class="empty-cell" [attr.colspan]="(service.layoutAtivo()?.colunas?.length ?? 0) + 1">Nenhum registro encontrado</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="table-footer">
+    <div class="table-footer-left">
+      <span class="result-count">Total: {{ registrosFiltrados().length }} registros</span>
+    </div>
+    <div class="table-footer-right">
+      <span class="pagination-info">Mostrando 1-{{ registrosFiltrados().length }} de {{ registrosFiltrados().length }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Gerenciar Layouts -->
+@if (mostrarLayoutModal()) {
+  <div class="modal-overlay" (click)="fecharLayoutModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Gerenciar Layouts</h2>
+        <button class="modal-close" (click)="fecharLayoutModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="layout-list">
+          @for (layout of service.layouts(); track layout.id) {
+            <div class="layout-item" [class.active]="service.layoutAtivo()?.id === layout.id" (click)="service.setLayoutAtivo(layout.id)">
+              <div class="layout-item-left">
+                <span class="layout-icon-star" [class.padrao]="layout.padrao" title="Padrão">
+                  <svg width="14" height="14" viewBox="0 0 24 24" [attr.fill]="layout.padrao ? '#f59e0b' : 'none'" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </span>
+                <span class="layout-icon-type" [title]="layout.tipo === 'pessoal' ? 'Pessoal' : 'Público'">
+                  @if (layout.tipo === 'pessoal') {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  }
+                </span>
+                <div class="layout-item-info">
+                  <span class="layout-item-name">{{ layout.nome }}</span>
+                  @if (layout.descricao) {
+                    <span class="layout-item-desc">{{ layout.descricao }}</span>
+                  }
+                </div>
+              </div>
+              <div class="layout-item-actions">
+                <button class="icon-btn" title="Duplicar" (click)="service.duplicarLayout(layout.id); $event.stopPropagation()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+                <button class="icon-btn" title="Excluir" (click)="service.removerLayout(layout.id); $event.stopPropagation()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <p class="empty-text">Nenhum layout criado</p>
+          }
+        </div>
+        <button class="btn btn-outline btn-full" (click)="abrirCriarLayout()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          + Criar Novo Layout
+        </button>
+        <div class="layout-legend">
+          <span class="legend-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Padrão
+          </span>
+          <span class="legend-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Pessoal
+          </span>
+          <span class="legend-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Público
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Criar Layout (Etapa 1/2) -->
+@if (mostrarCriarLayout() && criarEtapa() === 1) {
+  <div class="modal-overlay" (click)="fecharCriarLayout()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Criar Layout (1/2)</h2>
+        <button class="modal-close" (click)="fecharCriarLayout()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label class="checkbox-item-inline mb-12">
+          <input type="checkbox" [ngModel]="criarAPartirModelo()" (ngModelChange)="criarAPartirModelo.set($event)" />
+          Criar a partir de modelo
+        </label>
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" placeholder="Nome do layout" [ngModel]="novoLayoutNome()" (ngModelChange)="novoLayoutNome.set($event)" />
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <input type="text" placeholder="Descrição do layout" [ngModel]="novoLayoutDescricao()" (ngModelChange)="novoLayoutDescricao.set($event)" />
+        </div>
+        <div class="form-group">
+          <label>Tipo de Layout</label>
+          <select [ngModel]="novoLayoutTipo()" (ngModelChange)="novoLayoutTipo.set($event)">
+            <option value="pessoal">Pessoal</option>
+            <option value="publico">Público</option>
+          </select>
+        </div>
+        <label class="checkbox-item-inline">
+          <input type="checkbox" [ngModel]="novoLayoutPadrao()" (ngModelChange)="novoLayoutPadrao.set($event)" />
+          Definir como Padrão
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="fecharCriarLayout()">Cancelar</button>
+        <button class="btn btn-primary" (click)="proximaEtapa()" [disabled]="!novoLayoutNome()">Próximo</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Configurar Colunas (Etapa 2/2 or standalone) -->
+@if (mostrarCriarLayout() && criarEtapa() === 2) {
+  <div class="modal-overlay">
+    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Configurar Colunas (2/2)</h2>
+        <button class="modal-close" (click)="fecharCriarLayout()">&times;</button>
+      </div>
+      <div class="modal-body modal-body-columns">
+        <div class="search-bar-modal">
+          <input type="text" placeholder="Buscar coluna..." [ngModel]="buscaColuna()" (ngModelChange)="buscaColuna.set($event)" />
+        </div>
+        <div class="columns-panels">
+          <!-- Left: Available columns -->
+          <div class="columns-panel-left">
+            <h3 class="panel-title">Colunas Disponíveis</h3>
+            @for (grupo of colunasFiltradasConfig(); track grupo.grupo) {
+              <div class="column-group">
+                <div class="column-group-header" (click)="toggleGrupo(grupo.grupo)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.rotated]="!isGrupoExpandido(grupo.grupo)"><polyline points="6 9 12 15 18 9"/></svg>
+                  <span class="column-group-name">{{ grupo.grupo }}</span>
+                  <div class="column-group-actions">
+                    <button class="link-btn" (click)="marcarTodosGrupo(grupo); $event.stopPropagation()">Marcar todos</button>
+                  </div>
+                </div>
+                @if (isGrupoExpandido(grupo.grupo)) {
+                  <div class="column-group-items">
+                    @for (col of grupo.colunas; track col.id) {
+                      <label class="checkbox-item">
+                        <input type="checkbox" [checked]="isColunaSelecionada(col.id)" (change)="toggleColuna(col)" />
+                        <span class="col-name">{{ col.nome }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <!-- Right: Column order -->
+          <div class="columns-panel-right">
+            <h3 class="panel-title">Ordem das Colunas</h3>
+            <div class="ordered-columns-list">
+              @for (col of colunasOrdenadas(); track col.id; let i = $index) {
+                <div class="ordered-column-item" draggable="true" (dragstart)="onDragStart(i)" (dragover)="onDragOver($event)" (drop)="onDrop(i)">
+                  <span class="drag-handle">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="8" y2="6.01"/><line x1="16" y1="6" x2="16" y2="6.01"/><line x1="8" y1="12" x2="8" y2="12.01"/><line x1="16" y1="12" x2="16" y2="12.01"/><line x1="8" y1="18" x2="8" y2="18.01"/><line x1="16" y1="18" x2="16" y2="18.01"/></svg>
+                  </span>
+                  <span class="ordered-col-number">{{ i + 1 }}</span>
+                  <span class="ordered-col-name">{{ col.nome }}</span>
+                  <button class="icon-btn-sm" (click)="removerColunaOrdenada(i)">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+              } @empty {
+                <p class="empty-text">Nenhuma coluna selecionada</p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer-between">
+        <span class="colunas-count">{{ totalColunasSelec() }} colunas selecionadas</span>
+        <div class="modal-footer-actions">
+          <button class="btn btn-outline" (click)="voltarEtapa()">Voltar</button>
+          <button class="btn btn-primary" (click)="salvarNovoLayout()">Salvar Configuração</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Configurar Colunas (standalone) -->
+@if (mostrarConfigurarColunas()) {
+  <div class="modal-overlay">
+    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Configurar Colunas</h2>
+        <button class="modal-close" (click)="fecharConfigurarColunas()">&times;</button>
+      </div>
+      <div class="modal-body modal-body-columns">
+        <div class="search-bar-modal">
+          <input type="text" placeholder="Buscar coluna..." [ngModel]="buscaColuna()" (ngModelChange)="buscaColuna.set($event)" />
+        </div>
+        <div class="columns-panels">
+          <div class="columns-panel-left">
+            <h3 class="panel-title">Colunas Disponíveis</h3>
+            @for (grupo of colunasFiltradasConfig(); track grupo.grupo) {
+              <div class="column-group">
+                <div class="column-group-header" (click)="toggleGrupo(grupo.grupo)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.rotated]="!isGrupoExpandido(grupo.grupo)"><polyline points="6 9 12 15 18 9"/></svg>
+                  <span class="column-group-name">{{ grupo.grupo }}</span>
+                  <div class="column-group-actions">
+                    <button class="link-btn" (click)="marcarTodosGrupo(grupo); $event.stopPropagation()">Marcar todos</button>
+                  </div>
+                </div>
+                @if (isGrupoExpandido(grupo.grupo)) {
+                  <div class="column-group-items">
+                    @for (col of grupo.colunas; track col.id) {
+                      <label class="checkbox-item">
+                        <input type="checkbox" [checked]="isColunaSelecionada(col.id)" (change)="toggleColuna(col)" />
+                        <span class="col-name">{{ col.nome }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <div class="columns-panel-right">
+            <h3 class="panel-title">Ordem das Colunas</h3>
+            <div class="ordered-columns-list">
+              @for (col of colunasOrdenadas(); track col.id; let i = $index) {
+                <div class="ordered-column-item" draggable="true" (dragstart)="onDragStart(i)" (dragover)="onDragOver($event)" (drop)="onDrop(i)">
+                  <span class="drag-handle">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="8" y2="6.01"/><line x1="16" y1="6" x2="16" y2="6.01"/><line x1="8" y1="12" x2="8" y2="12.01"/><line x1="16" y1="12" x2="16" y2="12.01"/><line x1="8" y1="18" x2="8" y2="18.01"/><line x1="16" y1="18" x2="16" y2="18.01"/></svg>
+                  </span>
+                  <span class="ordered-col-number">{{ i + 1 }}</span>
+                  <span class="ordered-col-name">{{ col.nome }}</span>
+                  <button class="icon-btn-sm" (click)="removerColunaOrdenada(i)">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+              } @empty {
+                <p class="empty-text">Nenhuma coluna selecionada</p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer-between">
+        <span class="colunas-count">{{ totalColunasSelec() }} colunas selecionadas</span>
+        <div class="modal-footer-actions">
+          <button class="btn btn-outline" (click)="fecharConfigurarColunas()">Cancelar</button>
+          <button class="btn btn-primary" (click)="salvarConfigColunas()">Salvar Configuração</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Salvar Layout -->
+@if (mostrarSalvarLayout()) {
+  <div class="modal-overlay" (click)="fecharSalvarLayout()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Salvar Layout</h2>
+        <button class="modal-close" (click)="fecharSalvarLayout()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="salvar-tabs">
+          <button class="salvar-tab" [class.active]="salvarAbaSelecionada() === 'atualizar'" (click)="salvarAbaSelecionada.set('atualizar')">Atualizar Existente</button>
+          <button class="salvar-tab" [class.active]="salvarAbaSelecionada() === 'novo'" (click)="salvarAbaSelecionada.set('novo')">Salvar Como Novo</button>
+        </div>
+        <div class="form-group">
+          <label>Nome *</label>
+          <input type="text" [ngModel]="salvarNome()" (ngModelChange)="salvarNome.set($event)" />
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <input type="text" [ngModel]="salvarDescricao()" (ngModelChange)="salvarDescricao.set($event)" />
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <select [ngModel]="salvarTipo()" (ngModelChange)="salvarTipo.set($event)">
+            <option value="pessoal">Pessoal</option>
+            <option value="publico">Público</option>
+          </select>
+        </div>
+        <label class="checkbox-item-inline">
+          <input type="checkbox" [ngModel]="salvarPadrao()" (ngModelChange)="salvarPadrao.set($event)" />
+          Definir como Padrão
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="fecharSalvarLayout()">Cancelar</button>
+        @if (salvarAbaSelecionada() === 'atualizar') {
+          <button class="btn btn-primary" (click)="salvarLayoutAtualizar()">Salvar</button>
+        } @else {
+          <button class="btn btn-primary" (click)="salvarLayoutComoNovo()">Salvar</button>
+        }
+      </div>
+    </div>
+  </div>
+}

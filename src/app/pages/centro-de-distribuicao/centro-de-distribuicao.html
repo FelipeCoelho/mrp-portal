@@ -1,0 +1,219 @@
+<div class="page-container">
+  <div class="page-header-row">
+    <div class="page-header">
+      <h1 class="page-title">Centros de Distribuição</h1>
+      <p class="page-subtitle">Gestão e manutenção de Centros de Distribuição</p>
+    </div>
+    <button class="btn btn-primary" (click)="novo()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Novo CD
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="filter-group filter-search">
+      <label>Buscar por Código</label>
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Digite o código do CD..."
+          [ngModel]="filtroCodigo()" (ngModelChange)="filtroCodigo.set($event)" name="filtroCodigo" />
+      </div>
+    </div>
+    <div class="filter-group filter-tipo">
+      <label>Tipo</label>
+      <select [ngModel]="filtroTipo()" (ngModelChange)="filtroTipo.set($event)" name="filtroTipo">
+        <option value="">Todos</option>
+        @for (t of tiposIdentificacao; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-group filter-status">
+      <label>Status</label>
+      <select [ngModel]="filtroStatus()" (ngModelChange)="filtroStatus.set($event)" name="filtroStatus">
+        <option value="">Todos</option>
+        <option value="ativo">Ativos</option>
+        <option value="inativo">Inativos</option>
+      </select>
+    </div>
+    <div class="filter-group-right">
+      <div class="view-toggle">
+        <button class="toggle-btn" [class.active]="visao() === 'cards'" (click)="visao.set('cards')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Cards
+        </button>
+        <button class="toggle-btn" [class.active]="visao() === 'tabela'" (click)="visao.set('tabela')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Tabela
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table View -->
+  @if (visao() === 'tabela') {
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>CÓDIGO</th>
+            <th>TIPO DE IDENTIFICAÇÃO</th>
+            <th>TIPO DE PEDIDO</th>
+            <th>STATUS</th>
+            <th>AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cd of cdsFiltrados(); track cd.id) {
+            <tr>
+              <td>
+                <div class="cd-code-cell">
+                  <span class="cd-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </span>
+                  <span class="cd-code">{{ cd.codigo }}</span>
+                </div>
+              </td>
+              <td>{{ cd.tipoIdentificacao }}</td>
+              <td>{{ cd.tipoPedido }}</td>
+              <td>
+                <span class="badge" [class.badge-green]="cd.ativo" [class.badge-red]="!cd.ativo">
+                  {{ cd.ativo ? 'Ativo' : 'Inativo' }}
+                </span>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <button class="btn btn-sm btn-outline" (click)="editar(cd)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/></svg>
+                    Editar
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="desativar(cd.id)" [disabled]="!cd.ativo">Desativar</button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="empty-cell">Nenhum CD encontrado.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Cards View -->
+  @if (visao() === 'cards') {
+    <div class="cards-grid">
+      @for (cd of cdsFiltrados(); track cd.id) {
+        <div class="cd-card">
+          <div class="card-header-row">
+            <div class="cd-code-cell">
+              <span class="cd-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
+              <div>
+                <span class="cd-code">{{ cd.codigo }}</span>
+                <span class="cd-tipo-sub">{{ cd.tipoIdentificacao }}</span>
+              </div>
+            </div>
+            <span class="badge" [class.badge-green]="cd.ativo" [class.badge-red]="!cd.ativo">
+              {{ cd.ativo ? 'Ativo' : 'Inativo' }}
+            </span>
+          </div>
+          <div class="card-detail-line">Tipo de Pedido: <strong>{{ cd.tipoPedido }}</strong></div>
+          <div class="card-footer">
+            <button class="btn btn-secondary card-action-btn" (click)="editar(cd)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="9" x2="22" y2="9"/></svg>
+              Editar
+            </button>
+            <button class="btn btn-outline-danger card-action-btn" (click)="desativar(cd.id)" [disabled]="!cd.ativo">Desativar</button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state"><p>Nenhum CD encontrado.</p></div>
+      }
+    </div>
+  }
+
+  <!-- Modal -->
+  @if (mostrarForm()) {
+    <div class="modal-overlay" (click)="cancelar()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ editandoId() !== null ? 'Editar Centro de Distribuição' : 'Cadastrar Centro de Distribuição' }}</h2>
+          <button class="modal-close" (click)="cancelar()" type="button">×</button>
+        </div>
+
+        @if (erros().length > 0) {
+          <div class="error-box" role="alert">
+            @for (erro of erros(); track erro) { <p>{{ erro }}</p> }
+          </div>
+        }
+
+        <form (ngSubmit)="salvar()">
+          <div class="form-group">
+            <label>Código CD *</label>
+            <select [ngModel]="form().codigo" (ngModelChange)="updateForm('codigo', $event)"
+              name="codigo" [disabled]="editandoId() !== null">
+              <option value="" disabled>Selecione um CD...</option>
+              @for (c of codigosCd; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+            @if (editandoId() !== null) {
+              <span class="field-hint">O código não pode ser alterado durante a edição.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Pedido *</label>
+            <select [ngModel]="form().tipoPedido" (ngModelChange)="updateForm('tipoPedido', $event)" name="tipoPedido">
+              <option value="" disabled>Selecione...</option>
+              @for (t of tiposPedido; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Identificação do CD *</label>
+            <select [ngModel]="form().tipoIdentificacao" (ngModelChange)="updateForm('tipoIdentificacao', $event)" name="tipoIdentificacao">
+              <option value="" disabled>Selecione...</option>
+              @for (t of tiposIdentificacao; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>CDs Consumidor * (selecione ao menos um)</label>
+            <div class="checkbox-list">
+              @for (c of codigosCd; track c) {
+                <label class="checkbox-item">
+                  <input type="checkbox" [checked]="isCdConsumidor(c)" (change)="toggleCdConsumidor(c)" />
+                  <span>{{ c }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>CDs Estoque Adicional * (selecione ao menos um)</label>
+            <div class="checkbox-list">
+              @for (c of codigosCd; track c) {
+                <label class="checkbox-item">
+                  <input type="checkbox" [checked]="isCdEstoque(c)" (change)="toggleCdEstoque(c)" />
+                  <span>{{ c }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="cancelar()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">{{ editandoId() !== null ? 'Atualizar' : 'Criar CD' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

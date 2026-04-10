@@ -80,7 +80,8 @@
   flex: 1;
 }
 
-.nav-dot {
+.nav-item.active::after {
+  content: '';
   width: 8px;
   height: 8px;
   background: #3b82f6;
