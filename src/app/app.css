@@ -9,7 +9,7 @@
 .sidebar {
   width: 240px;
   min-width: 240px;
-  background: #0f1b2d;
+  background: #2a495c;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
